@@ -4,186 +4,281 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Meet Babariya — AI Engineer</title>
-<meta name="description" content="Meet Babariya — AI Engineer building LLM-powered systems with a background in quantitative finance and machine learning." />
+<meta name="description" content="Meet Babariya — AI Engineer building LLM-powered systems (RAG, agents, evals) with deep quantitative-finance expertise. Kaggle Silver Medalist, WorldQuant Gold, SEBI-certified." />
+<meta property="og:title" content="Meet Babariya — AI Engineer" />
+<meta property="og:description" content="AI Engineer building LLM systems with a quant-finance edge." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f6f7f9;
-    --border: #e4e7ec;
-    --text: #1a1d24;
-    --muted: #5b6472;
-    --accent: #2f6feb;
-    --accent-soft: #e8f0ff;
-    --shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
-    --shadow-lg: 0 12px 32px rgba(16,24,40,.10);
+    --bg-soft: #f5f8fd;
+    --surface: #ffffff;
+    --surface-2: #f1f5fb;
+    --border: #e2e8f2;
+    --text: #0d1522;
+    --muted: #59647a;
+    --accent: #2563eb;
+    --accent-2: #0891b2;
+    --ring: rgba(37,99,235,.14);
+    --shadow: 0 1px 2px rgba(13,21,34,.04), 0 8px 24px rgba(13,21,34,.06);
+    --shadow-lg: 0 20px 50px rgba(13,21,34,.14);
+    --grad: linear-gradient(120deg, #2563eb 0%, #0891b2 55%, #06b6d4 100%);
+    --nav-bg: rgba(255,255,255,.72);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --border: #262c36;
-      --text: #e6edf3;
-      --muted: #9aa5b1;
+      --bg: #080b12;
+      --bg-soft: #0c111b;
+      --surface: #10151f;
+      --surface-2: #151b28;
+      --border: #222b3b;
+      --text: #eaf0f8;
+      --muted: #97a3b6;
       --accent: #4d8bff;
-      --accent-soft: #16223d;
-      --shadow: none;
-      --shadow-lg: 0 12px 32px rgba(0,0,0,.4);
+      --accent-2: #22d3ee;
+      --ring: rgba(77,139,255,.22);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      --shadow-lg: 0 24px 60px rgba(0,0,0,.5);
+      --grad: linear-gradient(120deg, #4d8bff 0%, #22d3ee 55%, #38e0d0 100%);
+      --nav-bg: rgba(8,11,18,.7);
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.65;
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
   }
+  h1, h2, h3, .display { font-family: "Space Grotesk", sans-serif; letter-spacing: -.02em; }
   a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
-  section { padding: 56px 0; border-top: 1px solid var(--border); }
-  h2 {
-    font-size: 1.4rem; letter-spacing: -.01em; margin-bottom: 24px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  h2::before { content: ""; width: 4px; height: 22px; background: var(--accent); border-radius: 2px; }
-
-  /* Hero */
-  .hero { padding: 72px 0 56px; text-align: center; }
-  .avatar {
-    width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
-    border: 3px solid var(--border); box-shadow: var(--shadow-lg); margin: 0 auto 20px;
-    display: block; background: var(--surface);
-  }
-  .avatar-fallback {
-    width: 128px; height: 128px; border-radius: 50%; margin: 0 auto 20px;
-    display: none; align-items: center; justify-content: center;
-    font-size: 2.6rem; font-weight: 700; color: #fff;
-    background: linear-gradient(135deg, var(--accent), #7b3ff2); box-shadow: var(--shadow-lg);
-  }
-  .hero h1 { font-size: 2.4rem; letter-spacing: -.02em; margin-bottom: 8px; }
-  .hero .role { font-size: 1.15rem; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
-  .hero .tagline { color: var(--muted); max-width: 560px; margin: 0 auto 24px; font-size: 1.05rem; }
-  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px;
-    font-weight: 600; font-size: .92rem; border: 1px solid var(--border); background: var(--surface);
-    color: var(--text); transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .btn:hover { text-decoration: none; transform: translateY(-1px); box-shadow: var(--shadow); }
-  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .badge {
-    display: inline-block; margin-top: 22px; padding: 5px 14px; border-radius: 999px;
-    background: var(--accent-soft); color: var(--accent); font-size: .85rem; font-weight: 600;
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  .grad-text {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
   }
 
-  /* About */
-  .about p { color: var(--muted); font-size: 1.05rem; }
-  .about strong { color: var(--text); }
-
-  /* Skills */
-  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-  .skill-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-  .skill-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 12px; }
-  .tags { display: flex; flex-wrap: wrap; gap: 7px; }
-  .tag { font-size: .85rem; padding: 4px 10px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); }
-
-  /* Projects */
-  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
-    display: flex; flex-direction: column; transition: transform .14s ease, box-shadow .14s ease;
+  /* ---- Nav ---- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    background: var(--nav-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
   }
-  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-  .card .emoji { font-size: 1.6rem; margin-bottom: 10px; }
-  .card h3 { font-size: 1.1rem; margin-bottom: 8px; }
-  .card p { color: var(--muted); font-size: .95rem; flex-grow: 1; margin-bottom: 14px; }
-  .card .stack { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .card .stack span { font-size: .78rem; padding: 3px 9px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-  .card .links { display: flex; gap: 14px; font-size: .9rem; font-weight: 600; }
-  .featured { border-color: var(--accent); }
+  .nav-inner { max-width: 1000px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-family: "Space Grotesk"; font-weight: 700; font-size: 1.05rem; }
+  .brand .dot { color: var(--accent); }
+  .nav-links { display: flex; gap: 26px; }
+  .nav-links a { color: var(--muted); font-size: .92rem; font-weight: 600; transition: color .15s; }
+  .nav-links a:hover { color: var(--text); }
+  @media (max-width: 700px) { .nav-links { display: none; } }
 
-  /* Footer */
-  footer { text-align: center; padding: 48px 0 40px; color: var(--muted); font-size: .92rem; border-top: 1px solid var(--border); }
-  footer .cta { margin-bottom: 20px; }
+  /* ---- Hero ---- */
+  .hero { position: relative; padding: 150px 0 90px; overflow: hidden; }
+  .aurora { position: absolute; inset: 0; z-index: 0; pointer-events: none; filter: blur(70px); opacity: .55; }
+  .aurora span { position: absolute; border-radius: 50%; }
+  .aurora .a1 { width: 420px; height: 420px; background: #4d8bff; top: -120px; left: -80px; animation: float1 14s ease-in-out infinite; }
+  .aurora .a2 { width: 380px; height: 380px; background: #22d3ee; top: -60px; right: -60px; animation: float2 16s ease-in-out infinite; }
+  .aurora .a3 { width: 340px; height: 340px; background: #7c5cff; bottom: -140px; left: 40%; opacity: .5; animation: float1 18s ease-in-out infinite; }
+  @media (prefers-color-scheme: light) { .aurora { opacity: .28; } }
+  @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px,30px); } }
+  @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,40px); } }
 
-  @media (max-width: 560px) {
-    .hero h1 { font-size: 1.9rem; }
-    section { padding: 44px 0; }
+  .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
+  @media (max-width: 760px) { .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 28px; } .hero { padding-top: 120px; } }
+
+  .hero .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; font-weight: 700; color: var(--accent); background: var(--ring); padding: 6px 14px; border-radius: 999px; margin-bottom: 18px; }
+  .hero .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--ring); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.05; font-weight: 700; margin-bottom: 14px; }
+  .hero .lead { font-size: 1.12rem; color: var(--muted); max-width: 520px; margin-bottom: 26px; }
+  @media (max-width: 760px) { .hero .lead { margin-left: auto; margin-right: auto; } }
+
+  .photo-frame { position: relative; width: 210px; }
+  @media (max-width: 760px) { .photo-frame { margin: 0 auto; order: -1; width: 170px; } }
+  .photo-frame img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: center top; border-radius: 22px; display: block; }
+  .photo-frame .ring { position: absolute; inset: -3px; border-radius: 25px; background: var(--grad); z-index: -1; }
+  .photo-frame .glow { position: absolute; inset: -14px; border-radius: 30px; background: var(--grad); filter: blur(28px); opacity: .35; z-index: -2; }
+  .photo-fallback { display:none; width:100%; aspect-ratio:3/4; border-radius:22px; align-items:center; justify-content:center; font-family:"Space Grotesk"; font-size:3.4rem; font-weight:700; color:#fff; background: var(--grad); }
+
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 760px) { .cta { justify-content: center; } }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 20px; border-radius: 10px; font-weight: 700; font-size: .92rem; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: transform .14s, box-shadow .14s, border-color .14s; }
+  .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent); }
+  .btn.primary { background: var(--grad); color: #fff; border: none; }
+  .btn.primary:hover { box-shadow: var(--shadow-lg); }
+
+  /* ---- Credibility strip ---- */
+  .cred { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 14px; margin-top: 38px; }
+  @media (max-width: 760px) { .cred { justify-content: center; } }
+  .cred .chip { display: flex; align-items: center; gap: 9px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: .88rem; font-weight: 600; box-shadow: var(--shadow); }
+  .cred .chip b { font-family: "Space Grotesk"; }
+  .cred .chip .ico { font-size: 1.1rem; }
+
+  /* ---- Sections ---- */
+  section.block { padding: 72px 0; }
+  .section-head { margin-bottom: 34px; }
+  .section-head .kicker { font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .section-head h2 { font-size: 1.9rem; }
+  .about-text { font-size: 1.12rem; color: var(--muted); max-width: 720px; }
+  .about-text strong { color: var(--text); }
+
+  /* ---- Skills ---- */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+  .skill-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+  .skill-card .ico { font-size: 1.5rem; margin-bottom: 12px; display: block; }
+  .skill-card h3 { font-size: 1.02rem; margin-bottom: 14px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: .84rem; font-weight: 600; padding: 5px 11px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
+
+  /* ---- Projects ---- */
+  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; box-shadow: var(--shadow); transition: transform .16s, box-shadow .16s; overflow: hidden; }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .card.featured::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad); }
+  .card .emoji { font-size: 1.7rem; margin-bottom: 12px; }
+  .card h3 { font-size: 1.15rem; margin-bottom: 9px; }
+  .card p { color: var(--muted); font-size: .95rem; flex-grow: 1; margin-bottom: 16px; }
+  .card .stack { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+  .card .stack span { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 7px; background: var(--ring); color: var(--accent); }
+  .card .links a { font-weight: 700; font-size: .9rem; }
+
+  /* ---- Certifications ---- */
+  .certs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .cert { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow); transition: border-color .14s; }
+  .cert:hover { border-color: var(--accent); }
+  .cert .medal { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+  .cert h3 { font-size: 1rem; margin-bottom: 3px; }
+  .cert .issuer { font-size: .86rem; color: var(--muted); }
+  .cert .meta { font-size: .8rem; color: var(--accent); font-weight: 700; margin-top: 5px; }
+
+  /* ---- Footer ---- */
+  footer { border-top: 1px solid var(--border); padding: 64px 0 44px; text-align: center; background: var(--bg-soft); }
+  footer h2 { font-size: 1.9rem; margin-bottom: 10px; }
+  footer p.sub { color: var(--muted); margin-bottom: 26px; }
+  footer .cta { justify-content: center; margin-bottom: 30px; }
+  footer .copy { color: var(--muted); font-size: .88rem; }
+
+  /* ---- Reveal ---- */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .aurora span { animation: none; }
   }
 </style>
 </head>
 <body>
 
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <span class="brand">Meet Babariya<span class="dot">.</span></span>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#certs">Certifications</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
   <!-- Hero -->
   <header class="hero">
+    <div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
     <div class="wrap">
-      <img class="avatar" src="assets/profile.jpg" alt="Meet Babariya"
-           onerror="this.style.display='none';document.getElementById('av-fb').style.display='flex';" />
-      <div class="avatar-fallback" id="av-fb">MB</div>
-      <h1>Meet Babariya</h1>
-      <div class="role">AI Engineer</div>
-      <p class="tagline">I build LLM-powered systems — RAG, agents, and evaluation pipelines — on a
-        foundation of quantitative finance and machine learning.</p>
-      <div class="cta">
-        <a class="btn primary" href="mailto:meetbabariya001@gmail.com">✉ Email</a>
-        <a class="btn" href="https://github.com/MeetBabariya" target="_blank" rel="noopener">GitHub</a>
-        <!-- TODO: replace # with your LinkedIn URL -->
-        <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
-        <!-- TODO: add resume.pdf to this folder, then this link works -->
-        <a class="btn" href="resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <div class="hero-inner">
+        <div>
+          <span class="eyebrow"><span class="pulse"></span> Open to AI Engineer / ML Engineer roles</span>
+          <h1>AI Engineer with a<br><span class="grad-text">quant-finance edge</span></h1>
+          <p class="lead">I'm Meet — I build LLM-powered systems (RAG, agents, evaluation pipelines)
+            and bring deep quantitative-finance and machine-learning expertise to them.</p>
+          <div class="cta">
+            <a class="btn primary" href="mailto:meetbabariya001@gmail.com">✉ Email me</a>
+            <a class="btn" href="https://github.com/MeetBabariya" target="_blank" rel="noopener">GitHub</a>
+            <a class="btn" href="https://www.linkedin.com/in/meet-babariya-3044b0196/" target="_blank" rel="noopener">LinkedIn</a>
+            <a class="btn" href="https://www.kaggle.com/meetbabariya" target="_blank" rel="noopener">Kaggle</a>
+          </div>
+        </div>
+        <div class="photo-frame">
+          <div class="glow"></div><div class="ring"></div>
+          <img src="assets/profile.jpg" alt="Meet Babariya"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <div class="photo-fallback">MB</div>
+        </div>
       </div>
-      <span class="badge">Open to AI Engineer / ML Engineer roles</span>
+
+      <!-- Credibility strip -->
+      <div class="cred">
+        <div class="chip"><span class="ico">🥈</span> <b>Kaggle Silver Medalist</b> · top 4%</div>
+        <div class="chip"><span class="ico">🏆</span> <b>WorldQuant BRAIN</b> · Gold</div>
+        <div class="chip"><span class="ico">📜</span> <b>SEBI</b> · NISM certified ×2</div>
+      </div>
     </div>
   </header>
 
   <!-- About -->
-  <section class="about">
-    <div class="wrap">
-      <h2>About</h2>
-      <p>I'm an AI engineer focused on building applications on top of large language models —
-        retrieval-augmented generation, tool-using agents, and the evaluation pipelines that keep
-        them reliable. My edge is <strong>domain depth in quantitative finance</strong>: I've built
-        Value-at-Risk analyzers, GARCH volatility models, and option-pricing comparisons, and I bring
-        that rigor to AI systems for finance rather than generic demos.</p>
+  <section class="block" id="about">
+    <div class="wrap reveal">
+      <div class="section-head">
+        <div class="kicker">About</div>
+        <h2>Bridging AI engineering and quantitative finance</h2>
+      </div>
+      <p class="about-text">I build applications on top of large language models — retrieval-augmented
+        generation, tool-using agents, and the evaluation pipelines that keep them reliable. What sets me
+        apart is <strong>genuine domain depth in quantitative finance</strong>: I've studied derivative
+        pricing and stochastic calculus (MIT OpenCourseWare Financial Mathematics), earned SEBI's NISM
+        Equity Derivatives and Research Analyst certifications, and built VaR analyzers, GARCH volatility
+        models, and option-pricing engines. I bring that rigor to <strong>AI systems for finance</strong>,
+        not generic demos.</p>
     </div>
   </section>
 
   <!-- Skills -->
-  <section>
+  <section class="block" id="skills" style="background:var(--bg-soft);">
     <div class="wrap">
-      <h2>Skills</h2>
+      <div class="section-head reveal">
+        <div class="kicker">Toolkit</div>
+        <h2>Skills</h2>
+      </div>
       <div class="skills-grid">
-        <div class="skill-card">
-          <h3>AI / LLM</h3>
+        <div class="skill-card reveal">
+          <span class="ico">🤖</span>
+          <h3>AI / LLM Engineering</h3>
           <div class="tags">
-            <span class="tag">Claude API</span><span class="tag">RAG</span>
-            <span class="tag">Embeddings</span><span class="tag">Vector DBs</span>
-            <span class="tag">Agents / Tool use</span><span class="tag">Prompt engineering</span>
-            <span class="tag">Evals</span>
+            <span class="tag">Claude API</span><span class="tag">RAG</span><span class="tag">Embeddings</span>
+            <span class="tag">Vector DBs</span><span class="tag">Agents &amp; Tool use</span>
+            <span class="tag">Prompt engineering</span><span class="tag">Evals</span>
           </div>
         </div>
-        <div class="skill-card">
-          <h3>ML / Data</h3>
+        <div class="skill-card reveal">
+          <span class="ico">📊</span>
+          <h3>ML / Data Science</h3>
           <div class="tags">
-            <span class="tag">Python</span><span class="tag">scikit-learn</span>
-            <span class="tag">Pandas</span><span class="tag">NumPy</span>
-            <span class="tag">Jupyter</span><span class="tag">Spark</span>
+            <span class="tag">Python</span><span class="tag">PyTorch</span><span class="tag">scikit-learn</span>
+            <span class="tag">Pandas</span><span class="tag">NumPy</span><span class="tag">Spark</span>
+            <span class="tag">Jupyter</span>
           </div>
         </div>
-        <div class="skill-card">
-          <h3>MLOps / Deploy</h3>
+        <div class="skill-card reveal">
+          <span class="ico">📈</span>
+          <h3>Quantitative Finance</h3>
           <div class="tags">
-            <span class="tag">Docker</span><span class="tag">Streamlit</span>
-            <span class="tag">FastAPI</span><span class="tag">Hugging Face</span>
+            <span class="tag">Derivative pricing</span><span class="tag">Stochastic calculus</span>
+            <span class="tag">Options &amp; Greeks</span><span class="tag">Black-Scholes / Heston</span>
+            <span class="tag">GARCH</span><span class="tag">VaR / CVaR</span>
+            <span class="tag">Monte Carlo</span><span class="tag">Fixed income</span>
+            <span class="tag">Time-series</span><span class="tag">Algorithmic trading</span>
           </div>
         </div>
-        <div class="skill-card">
-          <h3>Quant Finance</h3>
+        <div class="skill-card reveal">
+          <span class="ico">⚙️</span>
+          <h3>MLOps / Deployment</h3>
           <div class="tags">
-            <span class="tag">VaR / CVaR</span><span class="tag">GARCH</span>
-            <span class="tag">Monte Carlo</span><span class="tag">Time series</span>
+            <span class="tag">Docker</span><span class="tag">FastAPI</span><span class="tag">Streamlit</span>
+            <span class="tag">Hugging Face</span><span class="tag">MLflow</span><span class="tag">Git</span>
           </div>
         </div>
       </div>
@@ -191,84 +286,120 @@
   </section>
 
   <!-- Projects -->
-  <section>
+  <section class="block" id="projects">
     <div class="wrap">
-      <h2>Featured Projects</h2>
+      <div class="section-head reveal">
+        <div class="kicker">Work</div>
+        <h2>Featured Projects</h2>
+      </div>
       <div class="projects">
-        <div class="card featured">
+        <div class="card featured reveal">
           <div class="emoji">🤖</div>
           <h3>Financial Filings RAG</h3>
           <p>Chat with SEC 10-K/10-Q filings. Retrieval-augmented generation with local embeddings,
              ChromaDB vector search, and grounded, cited answers from Claude.</p>
           <div class="stack"><span>Claude</span><span>RAG</span><span>Vector DB</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/financial-filings-rag" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/financial-filings-rag" target="_blank" rel="noopener">View code →</a></div>
         </div>
-        <div class="card featured">
+        <div class="card featured reveal">
           <div class="emoji">🧠</div>
           <h3>Financial Analyst Agent</h3>
-          <p>An AI agent that analyzes stocks by autonomously calling market-data and quant-risk
-             tools (VaR, volatility, Sharpe) via Claude tool use, then writes the analysis.</p>
+          <p>An AI agent that analyzes stocks by autonomously calling market-data and quant-risk tools
+             (VaR, volatility, Sharpe) via Claude tool use, then writes the analysis.</p>
           <div class="stack"><span>Claude</span><span>Agents</span><span>Tool use</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/financial-analyst-agent" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/financial-analyst-agent" target="_blank" rel="noopener">View code →</a></div>
         </div>
-        <div class="card">
+        <div class="card reveal">
           <div class="emoji">📊</div>
           <h3>Portfolio VaR Analyzer</h3>
-          <p>Value-at-Risk analysis for investment portfolios across historical, parametric, and
-             Monte Carlo methods.</p>
+          <p>Value-at-Risk analysis for investment portfolios across historical, parametric, and Monte
+             Carlo methods.</p>
           <div class="stack"><span>Python</span><span>Finance</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/Portfolio-VaR-Analyzer" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/Portfolio-VaR-Analyzer" target="_blank" rel="noopener">View code →</a></div>
         </div>
-        <div class="card">
+        <div class="card reveal">
           <div class="emoji">📈</div>
           <h3>Volatility Curve Prediction</h3>
           <p>Data-imputation competition entry — predicting missing volatility values with iterative
              modeling techniques.</p>
           <div class="stack"><span>ML</span><span>Jupyter</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/Volatility-Curve-Prediction" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/Volatility-Curve-Prediction" target="_blank" rel="noopener">View code →</a></div>
         </div>
-        <div class="card">
+        <div class="card reveal">
           <div class="emoji">🧮</div>
           <h3>Black-Scholes vs Heston</h3>
           <p>Comparing Black-Scholes and Heston option-pricing models on real market data.</p>
           <div class="stack"><span>Python</span><span>Quant</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/Black-Scholes-vs.-Heston-Model" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/Black-Scholes-vs.-Heston-Model" target="_blank" rel="noopener">View code →</a></div>
         </div>
-        <div class="card">
+        <div class="card reveal">
           <div class="emoji">💳</div>
           <h3>Credit Risk Modelling</h3>
           <p>Probability-of-default and expected-loss estimation in Python.</p>
           <div class="stack"><span>Python</span><span>ML</span></div>
-          <div class="links">
-            <a href="https://github.com/MeetBabariya/credit-risk-modelling" target="_blank" rel="noopener">Code →</a>
-          </div>
+          <div class="links"><a href="https://github.com/MeetBabariya/credit-risk-modelling" target="_blank" rel="noopener">View code →</a></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer / Contact -->
-  <footer>
+  <!-- Certifications -->
+  <section class="block" id="certs" style="background:var(--bg-soft);">
     <div class="wrap">
-      <h2 style="justify-content:center;">Get in touch</h2>
+      <div class="section-head reveal">
+        <div class="kicker">Credentials</div>
+        <h2>Certifications &amp; Achievements</h2>
+      </div>
+      <div class="certs">
+        <div class="cert reveal"><span class="medal">🥈</span><div>
+          <h3>Kaggle Competition Silver Medalist</h3>
+          <div class="issuer">CIBMTR – Equity in post-HCT Survival Predictions · 120th / 3,325 teams</div>
+          <div class="meta">Kaggle · 2025</div></div></div>
+        <div class="cert reveal"><span class="medal">🏆</span><div>
+          <h3>WorldQuant BRAIN — Gold Level</h3>
+          <div class="issuer">Reached Gold in the WorldQuant Challenge</div>
+          <div class="meta">WorldQuant · 2025</div></div></div>
+        <div class="cert reveal"><span class="medal">🎓</span><div>
+          <h3>Applied Data Science Lab</h3>
+          <div class="issuer">Project-based data science certification</div>
+          <div class="meta">WorldQuant University · 2024</div></div></div>
+        <div class="cert reveal"><span class="medal">📜</span><div>
+          <h3>NISM Series-VIII: Equity Derivatives</h3>
+          <div class="issuer">SEBI-recognized certification (scored 79.75)</div>
+          <div class="meta">NISM · 2023</div></div></div>
+        <div class="cert reveal"><span class="medal">📜</span><div>
+          <h3>NISM Series-XV: Research Analyst</h3>
+          <div class="issuer">SEBI-recognized certification</div>
+          <div class="meta">NISM · 2024</div></div></div>
+        <div class="cert reveal"><span class="medal">💹</span><div>
+          <h3>AlgoTrade Hackathon 2025</h3>
+          <div class="issuer">Algorithmic trading hackathon, Zagreb (EESTEC × X.FER)</div>
+          <div class="meta">2025</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer / Contact -->
+  <footer id="contact">
+    <div class="wrap reveal">
+      <h2>Let's build something</h2>
+      <p class="sub">Open to AI Engineer and ML Engineer roles. I'd love to hear from you.</p>
       <div class="cta">
         <a class="btn primary" href="mailto:meetbabariya001@gmail.com">✉ meetbabariya001@gmail.com</a>
         <a class="btn" href="https://github.com/MeetBabariya" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" href="https://www.linkedin.com/in/meet-babariya-3044b0196/" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" href="https://www.kaggle.com/meetbabariya" target="_blank" rel="noopener">Kaggle</a>
       </div>
-      <p>© 2026 Meet Babariya · Built with plain HTML/CSS, hosted on GitHub Pages.</p>
+      <p class="copy">© 2026 Meet Babariya · Built with HTML &amp; CSS, hosted on GitHub Pages.</p>
     </div>
   </footer>
 
+  <script>
+    // Scroll-reveal
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  </script>
 </body>
 </html>
