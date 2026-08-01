@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meet Babariya — AI Engineer</title>
+<meta name="description" content="Meet Babariya — AI Engineer building LLM-powered systems with a background in quantitative finance and machine learning." />
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --border: #e4e7ec;
+    --text: #1a1d24;
+    --muted: #5b6472;
+    --accent: #2f6feb;
+    --accent-soft: #e8f0ff;
+    --shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+    --shadow-lg: 0 12px 32px rgba(16,24,40,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #262c36;
+      --text: #e6edf3;
+      --muted: #9aa5b1;
+      --accent: #4d8bff;
+      --accent-soft: #16223d;
+      --shadow: none;
+      --shadow-lg: 0 12px 32px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  h2 {
+    font-size: 1.4rem; letter-spacing: -.01em; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2::before { content: ""; width: 4px; height: 22px; background: var(--accent); border-radius: 2px; }
+
+  /* Hero */
+  .hero { padding: 72px 0 56px; text-align: center; }
+  .avatar {
+    width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--border); box-shadow: var(--shadow-lg); margin: 0 auto 20px;
+    display: block; background: var(--surface);
+  }
+  .avatar-fallback {
+    width: 128px; height: 128px; border-radius: 50%; margin: 0 auto 20px;
+    display: none; align-items: center; justify-content: center;
+    font-size: 2.6rem; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, var(--accent), #7b3ff2); box-shadow: var(--shadow-lg);
+  }
+  .hero h1 { font-size: 2.4rem; letter-spacing: -.02em; margin-bottom: 8px; }
+  .hero .role { font-size: 1.15rem; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  .hero .tagline { color: var(--muted); max-width: 560px; margin: 0 auto 24px; font-size: 1.05rem; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px;
+    font-weight: 600; font-size: .92rem; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .badge {
+    display: inline-block; margin-top: 22px; padding: 5px 14px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); font-size: .85rem; font-weight: 600;
+  }
+
+  /* About */
+  .about p { color: var(--muted); font-size: 1.05rem; }
+  .about strong { color: var(--text); }
+
+  /* Skills */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .skill-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .skill-card h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tag { font-size: .85rem; padding: 4px 10px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); }
+
+  /* Projects */
+  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px;
+    display: flex; flex-direction: column; transition: transform .14s ease, box-shadow .14s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .card .emoji { font-size: 1.6rem; margin-bottom: 10px; }
+  .card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: .95rem; flex-grow: 1; margin-bottom: 14px; }
+  .card .stack { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .card .stack span { font-size: .78rem; padding: 3px 9px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .card .links { display: flex; gap: 14px; font-size: .9rem; font-weight: 600; }
+  .featured { border-color: var(--accent); }
+
+  /* Footer */
+  footer { text-align: center; padding: 48px 0 40px; color: var(--muted); font-size: .92rem; border-top: 1px solid var(--border); }
+  footer .cta { margin-bottom: 20px; }
+
+  @media (max-width: 560px) {
+    .hero h1 { font-size: 1.9rem; }
+    section { padding: 44px 0; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="wrap">
+      <img class="avatar" src="assets/profile.jpg" alt="Meet Babariya"
+           onerror="this.style.display='none';document.getElementById('av-fb').style.display='flex';" />
+      <div class="avatar-fallback" id="av-fb">MB</div>
+      <h1>Meet Babariya</h1>
+      <div class="role">AI Engineer</div>
+      <p class="tagline">I build LLM-powered systems — RAG, agents, and evaluation pipelines — on a
+        foundation of quantitative finance and machine learning.</p>
+      <div class="cta">
+        <a class="btn primary" href="mailto:meetbabariya001@gmail.com">✉ Email</a>
+        <a class="btn" href="https://github.com/MeetBabariya" target="_blank" rel="noopener">GitHub</a>
+        <!-- TODO: replace # with your LinkedIn URL -->
+        <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+        <!-- TODO: add resume.pdf to this folder, then this link works -->
+        <a class="btn" href="resume.pdf" target="_blank" rel="noopener">Resume</a>
+      </div>
+      <span class="badge">Open to AI Engineer / ML Engineer roles</span>
+    </div>
+  </header>
+
+  <!-- About -->
+  <section class="about">
+    <div class="wrap">
+      <h2>About</h2>
+      <p>I'm an AI engineer focused on building applications on top of large language models —
+        retrieval-augmented generation, tool-using agents, and the evaluation pipelines that keep
+        them reliable. My edge is <strong>domain depth in quantitative finance</strong>: I've built
+        Value-at-Risk analyzers, GARCH volatility models, and option-pricing comparisons, and I bring
+        that rigor to AI systems for finance rather than generic demos.</p>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section>
+    <div class="wrap">
+      <h2>Skills</h2>
+      <div class="skills-grid">
+        <div class="skill-card">
+          <h3>AI / LLM</h3>
+          <div class="tags">
+            <span class="tag">Claude API</span><span class="tag">RAG</span>
+            <span class="tag">Embeddings</span><span class="tag">Vector DBs</span>
+            <span class="tag">Agents / Tool use</span><span class="tag">Prompt engineering</span>
+            <span class="tag">Evals</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <h3>ML / Data</h3>
+          <div class="tags">
+            <span class="tag">Python</span><span class="tag">scikit-learn</span>
+            <span class="tag">Pandas</span><span class="tag">NumPy</span>
+            <span class="tag">Jupyter</span><span class="tag">Spark</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <h3>MLOps / Deploy</h3>
+          <div class="tags">
+            <span class="tag">Docker</span><span class="tag">Streamlit</span>
+            <span class="tag">FastAPI</span><span class="tag">Hugging Face</span>
+          </div>
+        </div>
+        <div class="skill-card">
+          <h3>Quant Finance</h3>
+          <div class="tags">
+            <span class="tag">VaR / CVaR</span><span class="tag">GARCH</span>
+            <span class="tag">Monte Carlo</span><span class="tag">Time series</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section>
+    <div class="wrap">
+      <h2>Featured Projects</h2>
+      <div class="projects">
+        <div class="card featured">
+          <div class="emoji">🤖</div>
+          <h3>Financial Filings RAG</h3>
+          <p>Chat with SEC 10-K/10-Q filings. Retrieval-augmented generation with local embeddings,
+             ChromaDB vector search, and grounded, cited answers from Claude.</p>
+          <div class="stack"><span>Claude</span><span>RAG</span><span>Vector DB</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/financial-filings-rag" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+        <div class="card featured">
+          <div class="emoji">🧠</div>
+          <h3>Financial Analyst Agent</h3>
+          <p>An AI agent that analyzes stocks by autonomously calling market-data and quant-risk
+             tools (VaR, volatility, Sharpe) via Claude tool use, then writes the analysis.</p>
+          <div class="stack"><span>Claude</span><span>Agents</span><span>Tool use</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/financial-analyst-agent" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="emoji">📊</div>
+          <h3>Portfolio VaR Analyzer</h3>
+          <p>Value-at-Risk analysis for investment portfolios across historical, parametric, and
+             Monte Carlo methods.</p>
+          <div class="stack"><span>Python</span><span>Finance</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/Portfolio-VaR-Analyzer" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="emoji">📈</div>
+          <h3>Volatility Curve Prediction</h3>
+          <p>Data-imputation competition entry — predicting missing volatility values with iterative
+             modeling techniques.</p>
+          <div class="stack"><span>ML</span><span>Jupyter</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/Volatility-Curve-Prediction" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="emoji">🧮</div>
+          <h3>Black-Scholes vs Heston</h3>
+          <p>Comparing Black-Scholes and Heston option-pricing models on real market data.</p>
+          <div class="stack"><span>Python</span><span>Quant</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/Black-Scholes-vs.-Heston-Model" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="emoji">💳</div>
+          <h3>Credit Risk Modelling</h3>
+          <p>Probability-of-default and expected-loss estimation in Python.</p>
+          <div class="stack"><span>Python</span><span>ML</span></div>
+          <div class="links">
+            <a href="https://github.com/MeetBabariya/credit-risk-modelling" target="_blank" rel="noopener">Code →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer / Contact -->
+  <footer>
+    <div class="wrap">
+      <h2 style="justify-content:center;">Get in touch</h2>
+      <div class="cta">
+        <a class="btn primary" href="mailto:meetbabariya001@gmail.com">✉ meetbabariya001@gmail.com</a>
+        <a class="btn" href="https://github.com/MeetBabariya" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+      <p>© 2026 Meet Babariya · Built with plain HTML/CSS, hosted on GitHub Pages.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
