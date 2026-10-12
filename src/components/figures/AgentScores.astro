@@ -1,0 +1,60 @@
+---
+/* ---------- AI: agent scores on my benchmark designs (real, anonymised) ---------- */
+const designs = [
+  { name: 'Text tampering', runs: [1.0, 0.9999], ok: false },
+  { name: 'Biomedical cloze', runs: [0.937], ok: false },
+  { name: 'Perceptual cohort', runs: [0.9], ok: false },
+  { name: 'Sequence relay', runs: [0.8367, 0.8261], ok: false },
+  { name: 'Segment reconstruction', runs: [0.6606, 0.6657], ok: true },
+  { name: 'Field source recovery', runs: [0.6127, 0.2608, 0.2511], ok: true },
+];
+const W = 600, H = 360, L = 190, R = 18, T = 22, B = 34;
+const x = (v: number) => L + v * (W - L - R);
+const rowH = (H - T - B) / designs.length;
+const y = (i: number) => T + rowH * (i + 0.5);
+const xticks = [0, 0.2, 0.4, 0.6, 0.8, 1];
+
+---
+
+    <svg viewBox={`0 0 ${W} ${H}`} class="dots" role="img"
+      aria-label="Dot plot of frontier-agent scores per benchmark design. Four designs scored above the 0.8 ceiling and were too easy; two landed below it.">
+      {xticks.map((t) => (
+        <g>
+          <line x1={x(t)} x2={x(t)} y1={T - 6} y2={H - B} class="grid" />
+          <text x={x(t)} y={H - B + 18} class="tick" text-anchor="middle">{t.toFixed(1)}</text>
+        </g>
+      ))}
+      <rect x={x(0.8)} y={T - 6} width={x(1) - x(0.8)} height={H - B - T + 6} class="zone" />
+      <line x1={x(0.8)} x2={x(0.8)} y1={T - 6} y2={H - B} class="ceiling" />
+      <text x={x(0.8) - 6} y={T + 2} class="tick strong" text-anchor="end">ceiling 0.8 →</text>
+      {designs.map((d, i) => (
+        <g class:list={['row', d.ok ? 'ok' : 'bad']} style={`--i:${i}`}>
+          <text x={L - 14} y={y(i) + 4} class="rname" text-anchor="end">{d.name}</text>
+          <line x1={x(Math.min(...d.runs))} x2={x(Math.max(...d.runs))} y1={y(i)} y2={y(i)} class="span" />
+          {d.runs.map((r) => <circle cx={x(r)} cy={y(i)} r="5.5" class="dot"><title>{`${d.name}: ${r}`}</title></circle>)}
+        </g>
+      ))}
+    </svg>
+
+<style>
+  .dots { width: 100%; max-width: 680px; margin-inline: auto; height: auto; overflow: visible; }
+  .grid { stroke: var(--rule); stroke-width: 1; }
+  .tick { fill: var(--fg-3); font: 11.5px var(--font-mono); }
+  .tick.strong { fill: var(--fg-2); }
+  .rname { fill: var(--fg-2); font: 14px var(--font-sans); letter-spacing: -0.01em; }
+  /* dot plot */
+  .zone { fill: var(--neg); opacity: 0.06; }
+  .ceiling { stroke: var(--fg-2); stroke-width: 1; stroke-dasharray: 3 3; }
+  .span { stroke: var(--rule-2); stroke-width: 2; }
+  .dot { stroke-width: 1.5; transition: r var(--t-fast); }
+  .ok .dot { fill: var(--accent); stroke: var(--accent); }
+  .bad .dot { fill: var(--bg-raised); stroke: var(--neg); }
+  .dot:hover { r: 7.5; }
+  .row { opacity: 0; transform: translateX(-12px); transition: opacity 600ms var(--ease), transform 600ms var(--ease); transition-delay: calc(var(--i) * 80ms + 200ms); }
+  :global(.is-in) .row, :global(html:not(.js)) .row { opacity: 1; transform: none; }
+
+  @media (max-width: 600px) {
+    .rname { font-size: 17px; }
+    .tick { font-size: 15px; }
+  }
+</style>

@@ -1,0 +1,45 @@
+---
+/** QuantPilot system diagram: TypeScript product shell + Python quant brain over one Postgres schema. */
+---
+
+<div class="arch">
+  <div class="lane">
+    <p class="lane-l label">TypeScript · product shell</p>
+    <div class="nodes three">
+      <div class="node"><b>Telegram bot</b><span>grammY · onboarding, alerts, one-tap copy</span></div>
+      <div class="node"><b>Signing web app</b><span>Next.js · user approves an agent wallet once</span></div>
+      <div class="node hot"><b>Execution API</b><span>Hono · /trade, /positions, builder-code fills, AES-GCM agent keys</span></div>
+    </div>
+  </div>
+  <div class="link-v" aria-hidden="true"><span>shared schema</span></div>
+  <div class="lane">
+    <p class="lane-l label">Python · quant brain</p>
+    <div class="nodes three">
+      <div class="node hot"><b>Ranking worker</b><span>risk- &amp; funding-adjusted metrics, Deflated Sharpe</span></div>
+      <div class="node"><b>AI copilot</b><span>FastAPI · explains traders &amp; positions (next phase)</span></div>
+      <div class="node db"><b>PostgreSQL</b><span>one schema, read and written by both languages</span></div>
+    </div>
+  </div>
+  <div class="ext mono">
+    <span>Hyperliquid L1</span>
+    <span class="faint">agent wallet can trade · cannot withdraw</span>
+  </div>
+</div>
+
+<style>
+  .arch { display: grid; gap: 12px; }
+  .lane { display: grid; gap: 10px; }
+  .lane-l { font-size: 10.5px; }
+  .nodes { display: grid; gap: 10px; }
+  .three { grid-template-columns: repeat(3, 1fr); }
+  .node { border: 1px solid var(--rule-2); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; background: var(--bg); }
+  .node b { font-weight: 500; font-size: 14px; letter-spacing: -0.01em; }
+  .node span { font-size: 12.5px; color: var(--fg-2); line-height: 1.4; }
+  .node.hot { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  .node.hot b { color: var(--accent); }
+  .node.db { border-style: dashed; }
+  .link-v { display: flex; align-items: center; gap: 10px; font: 10.5px var(--font-mono); color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .link-v::before, .link-v::after { content: ''; flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--rule-2) 0 4px, transparent 4px 8px); }
+  .ext { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-radius: 8px; background: var(--bg-sunken); font-size: 12px; }
+  @media (max-width: 700px) { .three { grid-template-columns: 1fr; } }
+</style>

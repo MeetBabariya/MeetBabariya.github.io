@@ -1,0 +1,89 @@
+---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '@/styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Meet Babariya — AI Engineer × Quant',
+  description = 'AI engineer and former options trader in Stuttgart. ML Benchmark Engineer at Datacurve (YC). LLM systems, evaluation and volatility research.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const og = new URL('/og.png', Astro.site);
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark" data-lens="ai">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={og} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)" />
+    <script is:inline>
+      // Runs before first paint and after every client-side navigation,
+      // so theme + lens never flash.
+      (() => {
+        const read = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+        const apply = (doc, search) => {
+          const q = new URLSearchParams(search).get('lens');
+          const lens = q === 'quant' || q === 'ai' ? q : read('lens') || 'ai';
+          const theme = read('theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+          doc.documentElement.dataset.lens = lens;
+          doc.documentElement.dataset.theme = theme;
+          doc.documentElement.classList.add('js');
+        };
+        apply(document, location.search);
+        document.addEventListener('astro:before-swap', (e) => apply(e.newDocument, e.to.search));
+      })();
+    </script>
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Meet Babariya',
+        jobTitle: 'AI Engineer',
+        address: { '@type': 'PostalAddress', addressLocality: 'Stuttgart', addressCountry: 'DE' },
+        alumniOf: 'Furtwangen University',
+        sameAs: [
+          'https://github.com/MeetBabariya',
+          'https://www.linkedin.com/in/meet-babariya-3044b0196/',
+          'https://www.kaggle.com/meetbabariya',
+        ],
+      })}
+    />
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import { initPage, initGlobal } from '@/lib/client';
+      initGlobal();
+      document.addEventListener('astro:page-load', initPage);
+    </script>
+  </body>
+</html>

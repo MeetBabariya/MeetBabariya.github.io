@@ -1,0 +1,148 @@
+---
+import { simulate, line, area, sx, sy, FAN_BOX } from '@/lib/gbm';
+import AgentScores from '@/components/figures/AgentScores.astro';
+
+/* ---------- Quant: seeded Monte-Carlo fan ---------- */
+const fan = simulate();
+const { steps, bands } = fan;
+const sample = fan.paths.filter((_, i) => i % 6 === 0);
+const yticks = [60, 80, 100, 120, 140, 160];
+const months = [0, 3, 6, 9, 12];
+---
+
+<figure class="fig" data-reveal>
+  <!-- AI lens -->
+  <div data-only="ai" class="pane">
+    <figcaption class="fig-head">
+      <span class="label">Fig. 01</span>
+      <span class="fig-title">Agent scores on six of my benchmark designs</span>
+    </figcaption>
+    <div class="chart"><AgentScores /></div>
+    <p class="fig-foot">
+      <span><i class="k bad"></i>too easy · rejected</span>
+      <span><i class="k ok"></i>hard enough · kept</span>
+      <span class="faint">Each dot is one frontier-agent run. Lower is harder.</span>
+    </p>
+  </div>
+
+  <!-- Quant lens -->
+  <div data-only="quant" class="pane">
+    <figcaption class="fig-head">
+      <span class="label">Fig. 01</span>
+      <span class="fig-title">GBM price paths, σ = 22%, 1-year horizon</span>
+      <button class="resample mono" data-resample aria-label="Resample paths">Resample ↻</button>
+    </figcaption>
+    <svg viewBox={`0 0 ${FAN_BOX.w} ${FAN_BOX.h}`} class="chart fan" role="img" data-fan
+      aria-label="Fan chart of 96 simulated price paths with 5–95 and 25–75 percentile bands and the median.">
+      {yticks.map((v) => (
+        <g>
+          <line x1={FAN_BOX.l} x2={FAN_BOX.w - FAN_BOX.r} y1={sy(v)} y2={sy(v)} class="grid" />
+          <text x={FAN_BOX.l - 8} y={sy(v) + 4} class="tick" text-anchor="end">{v}</text>
+        </g>
+      ))}
+      {months.map((m) => (
+        <text x={sx((m / 12) * steps, steps)} y={FAN_BOX.h - 10} class="tick" text-anchor="middle">{m}m</text>
+      ))}
+      <g data-layer>
+        <path d={area(bands.p5, bands.p95, steps)} class="band outer" />
+        <path d={area(bands.p25, bands.p75, steps)} class="band inner" />
+        {sample.map((p) => <path d={line(p, steps)} class="path" pathLength="1" />)}
+        <path d={line(bands.p50, steps)} class="median" pathLength="1" />
+      </g>
+      <line class="cross" data-cross x1="0" x2="0" y1={FAN_BOX.t} y2={FAN_BOX.h - FAN_BOX.b} />
+      <rect data-hit x={FAN_BOX.l} y={FAN_BOX.t} width={FAN_BOX.w - FAN_BOX.l - FAN_BOX.r} height={FAN_BOX.h - FAN_BOX.t - FAN_BOX.b} fill="transparent" />
+    </svg>
+    <p class="fig-foot mono tnum" data-readout>
+      <span>t = 12m</span>
+      <span>p5 <b>{bands.p5[steps].toFixed(1)}</b></span>
+      <span>p50 <b>{bands.p50[steps].toFixed(1)}</b></span>
+      <span>p95 <b>{bands.p95[steps].toFixed(1)}</b></span>
+    </p>
+  </div>
+</figure>
+
+<script>
+  import { simulate, line, area, sx, FAN_BOX } from '@/lib/gbm';
+  import { registerCleanup } from '@/lib/client';
+
+  function init() {
+    const svg = document.querySelector<SVGSVGElement>('[data-fan]');
+    if (!svg) return;
+    const layer = svg.querySelector<SVGGElement>('[data-layer]')!;
+    const cross = svg.querySelector<SVGLineElement>('[data-cross]')!;
+    const hit = svg.querySelector<SVGRectElement>('[data-hit]')!;
+    const readout = document.querySelector<HTMLElement>('[data-readout]')!;
+    let fan = simulate();
+    let seed = 7;
+
+    const write = (t: number) => {
+      const b = fan.bands;
+      const m = ((t / fan.steps) * 12).toFixed(1);
+      readout.innerHTML = `<span>t = ${m}m</span><span>p5 <b>${b.p5[t].toFixed(1)}</b></span><span>p50 <b>${b.p50[t].toFixed(1)}</b></span><span>p95 <b>${b.p95[t].toFixed(1)}</b></span>`;
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM()!.inverse());
+      const t = Math.round(((pt.x - FAN_BOX.l) / (FAN_BOX.w - FAN_BOX.l - FAN_BOX.r)) * fan.steps);
+      const c = Math.max(0, Math.min(fan.steps, t));
+      cross.setAttribute('x1', String(sx(c, fan.steps)));
+      cross.setAttribute('x2', String(sx(c, fan.steps)));
+      cross.classList.add('on');
+      write(c);
+    };
+    const onLeave = () => { cross.classList.remove('on'); write(fan.steps); };
+    hit.addEventListener('pointermove', onMove);
+    hit.addEventListener('pointerleave', onLeave);
+
+    const btn = document.querySelector<HTMLButtonElement>('[data-resample]');
+    const resample = () => {
+      seed += 1;
+      fan = simulate({ seed });
+      const s = fan.steps;
+      const paths = fan.paths.filter((_, i) => i % 6 === 0).map((p) => `<path d="${line(p, s)}" class="path" pathLength="1"/>`).join('');
+      layer.innerHTML = `<path d="${area(fan.bands.p5, fan.bands.p95, s)}" class="band outer"/><path d="${area(fan.bands.p25, fan.bands.p75, s)}" class="band inner"/>${paths}<path d="${line(fan.bands.p50, s)}" class="median" pathLength="1"/>`;
+      svg.classList.remove('drawn'); void svg.getBoundingClientRect(); svg.classList.add('drawn');
+      write(s);
+    };
+    btn?.addEventListener('click', resample);
+    svg.classList.add('drawn');
+
+    registerCleanup(() => {
+      hit.removeEventListener('pointermove', onMove);
+      hit.removeEventListener('pointerleave', onLeave);
+      btn?.removeEventListener('click', resample);
+    });
+  }
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<style>
+  .fig { border: 1px solid var(--rule); border-radius: 14px; background: var(--bg-raised); overflow: hidden; }
+  .pane { display: flex; flex-direction: column; }
+  .fig-head { display: flex; white-space: nowrap; align-items: baseline; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--rule); }
+  .fig-title { white-space: normal; font-size: 13.5px; color: var(--fg-2); letter-spacing: -0.005em; }
+  .resample { margin-left: auto; font-size: 11.5px; color: var(--fg-3); letter-spacing: 0.02em; transition: color var(--t-fast); }
+  .resample:hover { color: var(--accent); }
+  .chart { width: 100%; height: auto; padding: 8px 6px 0; overflow: visible; }
+  .fig-foot { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 18px 14px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--fg-2); }
+  .fig-foot b { color: var(--fg); font-weight: 500; }
+  .k { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+  .k.ok { background: var(--accent); }
+  .k.bad { background: transparent; border: 1.5px solid var(--neg); }
+
+  .chart :global(.grid) { stroke: var(--rule); stroke-width: 1; }
+  .chart :global(.tick) { fill: var(--fg-3); font: 10.5px var(--font-mono); }
+  .chart :global(.tick.strong) { fill: var(--fg-2); }
+  .chart :global(.rname) { fill: var(--fg-2); font: 12.5px var(--font-sans); letter-spacing: -0.01em; }
+
+  /* fan */
+  .fan :global(.band.outer) { fill: var(--accent); opacity: 0.08; }
+  .fan :global(.band.inner) { fill: var(--accent); opacity: 0.14; }
+  .fan :global(.path) { fill: none; stroke: var(--fg-3); stroke-width: 0.8; opacity: 0.55; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .fan :global(.median) { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .fan:global(.drawn) :global(.path), .fan:global(.drawn) :global(.median) { animation: draw 1.6s var(--ease) both; }
+  .fan:global(.drawn) :global(.median) { animation-delay: 0.3s; }
+  @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  .cross { stroke: var(--fg-2); stroke-width: 1; opacity: 0; transition: opacity var(--t-fast); pointer-events: none; }
+  .cross:global(.on) { opacity: 0.7; }
+</style>

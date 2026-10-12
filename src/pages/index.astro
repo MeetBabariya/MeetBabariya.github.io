@@ -1,0 +1,345 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '@/layouts/Base.astro';
+import HeroFigure from '@/components/HeroFigure.astro';
+import { facts, experience, ranks, skills, certs, archive, person } from '@/data/profile';
+import portrait from '@/assets/profile.jpg';
+
+const work = await getCollection('work');
+const byAi = [...work].sort((a, b) => a.data.order.ai - b.data.order.ai);
+const byQuant = [...work].sort((a, b) => a.data.order.quant - b.data.order.quant);
+const pos = (id: string, list: typeof work) => list.findIndex((w) => w.id === id);
+const pad = (n: number) => String(n + 1).padStart(2, '0');
+
+const trackOrder = (t: string, lens: 'ai' | 'quant') => (t === lens ? 0 : t === 'both' ? 1 : 2);
+const pct = (r: number, of: number) => (r / of) * 100;
+---
+
+<Base>
+  <!-- HERO -->
+  <section class="hero container">
+    <div class="grid-12 hero-grid">
+      <div class="hero-copy">
+        <p class="label" data-reveal>
+          <span class="status-dot" aria-hidden="true"></span>
+          Available for internships · Stuttgart, Germany
+        </p>
+        <h1 class="display" data-reveal>Meet<br />Babariya</h1>
+        <p class="lede intro" data-reveal>
+          <span data-only="ai">
+            AI engineer. I design the <b>benchmarks frontier AI agents are trained and graded on</b> at Datacurve (YC), and build
+            LLM systems that are measured, not guessed.
+          </span>
+          <span data-only="quant">
+            Former options trader turned quant developer. <b>2.5 years on a live index-options desk</b>, 12th in Germany at IMC
+            Prosperity, and backtests that account for fills, costs and regimes.
+          </span>
+        </p>
+        <div class="hero-cta" data-reveal>
+          <a class="btn btn--solid" href={person.cv.ai} data-cv-link target="_blank">
+            Download CV
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v9m0 0 3.5-3.5M8 11 4.5 7.5M3 14h10" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg>
+          </a>
+          <a class="btn" href="#work">Selected work</a>
+          <span class="hint mono faint">Press <kbd>L</kbd> to switch lens</span>
+        </div>
+      </div>
+      <div class="hero-fig">
+        <HeroFigure />
+      </div>
+    </div>
+
+    <dl class="facts grid-12">
+      {facts.map((f) => (
+        <div class="fact" data-reveal>
+          <dt class="label">{f.k}</dt>
+          <dd>
+            <span class="fv">{f.v}</span>
+            <span class="fs faint">{f.sub}</span>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <!-- WORK -->
+  <section class="section" id="work">
+    <div class="container">
+      <div class="grid-12 section-head">
+        <p class="label">01 — Selected work</p>
+        <h2 class="h2" data-reveal>Case studies with the numbers left in.</h2>
+      </div>
+
+      <ol class="index" role="list">
+        {work.map((w) => (
+          <li class="row" style={`--o-ai:${pos(w.id, byAi)};--o-quant:${pos(w.id, byQuant)}`} data-reveal>
+            <a href={`/work/${w.id}`} class="row-link">
+              <span class="num mono">
+                <span data-only="ai">{pad(pos(w.id, byAi))}</span>
+                <span data-only="quant">{pad(pos(w.id, byQuant))}</span>
+              </span>
+              <span class="ttl">
+                <span class="h3" transition:name={`title-${w.id}`}>{w.data.title}</span>
+                <span class="kick muted">{w.data.kicker}</span>
+              </span>
+              <span class="hl">
+                <span class="hv tnum">{w.data.headline.value}</span>
+                <span class="hlbl faint">{w.data.headline.label}</span>
+              </span>
+              <span class="yr mono faint">{w.data.year}</span>
+              <span class="go" aria-hidden="true">
+                <svg viewBox="0 0 16 16"><path d="M3 8h10m0 0L9 4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+
+      <div class="grid-12 archive">
+        <p class="label">Also on GitHub</p>
+        <ul class="arch" role="list">
+          {archive.map((a) => (
+            <li style={`--o-ai:${trackOrder(a.track, 'ai')};--o-quant:${trackOrder(a.track, 'quant')}`}>
+              <a href={a.href} target="_blank" rel="noopener" class="arch-link">
+                <span class="at">{a.title} <span class="ext" aria-hidden="true">↗</span></span>
+                <span class="an faint">{a.note}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="section" id="experience">
+    <div class="container">
+      <div class="grid-12 section-head">
+        <p class="label">02 — Experience</p>
+        <h2 class="h2" data-reveal>Benchmarks for AI agents. Before that, risk on a trading desk.</h2>
+      </div>
+      <ol class="xp" role="list">
+        {experience.map((r) => (
+          <li class="xp-row grid-12" style={`--o-ai:${trackOrder(r.track, 'ai')};--o-quant:${trackOrder(r.track, 'quant')}`} data-reveal>
+            <div class="xp-when">
+              <span class="mono tnum">{r.period}</span>
+              <span class="faint">{r.place}</span>
+            </div>
+            <div class="xp-who">
+              <h3 class="h3">{r.org}{r.tag && <span class="yc mono">{r.tag}</span>}</h3>
+              <p class="muted">{r.title}</p>
+            </div>
+            <div class="xp-what">
+              <p>{r.summary}</p>
+              <ul>{r.points.map((p) => <li class="muted">{p}</li>)}</ul>
+              {r.caseStudy && <a class="link accent more" href={r.caseStudy}>How I design a benchmark →</a>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- RECORD -->
+  <section class="section" id="record">
+    <div class="container">
+      <div class="grid-12 section-head">
+        <p class="label">03 — Record</p>
+        <h2 class="h2" data-reveal>Open leaderboards, thousands of teams.</h2>
+      </div>
+      <table class="rec">
+        <caption class="sr-only">Competition results</caption>
+        <thead class="label">
+          <tr><th scope="col">Competition</th><th scope="col" class="c-d">Detail</th><th scope="col" class="c-r">Result</th><th scope="col" class="c-b">Percentile</th></tr>
+        </thead>
+        <tbody>
+          {ranks.map((r) => (
+            <tr data-reveal style={`--o-ai:${trackOrder(r.track, 'ai')};--o-quant:${trackOrder(r.track, 'quant')}`}>
+              <th scope="row">{r.event}</th>
+              <td class="c-d muted">{r.detail}</td>
+              <td class="c-r mono tnum">{r.rank && r.of ? <>{r.rank}<span class="faint"> / {r.of.toLocaleString('en-US')}</span></> : r.result}</td>
+              <td class="c-b">
+                {r.rank && r.of ? (
+                  <span class="pbar" style={`--p:${100 - pct(r.rank, r.of)}%`}>
+                    <span class="track"><span class="fill"></span></span>
+                    <span class="mono tnum pv">top {pct(r.rank, r.of).toFixed(1)}%</span>
+                  </span>
+                ) : <span class="faint mono">—</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="grid-12 section-head">
+        <p class="label">04 — About</p>
+        <h2 class="h2" data-reveal>I trust numbers I can test against reality.</h2>
+      </div>
+      <div class="grid-12 about">
+        <div class="portrait" data-reveal>
+          <Image src={portrait} alt="Meet Babariya" widths={[320, 480, 720]} sizes="(max-width: 760px) 60vw, 25vw" loading="lazy" />
+          <p class="cap mono faint">Meet Babariya · Stuttgart</p>
+        </div>
+        <div class="bio" data-reveal>
+          <p class="lede">
+            Before moving to Germany to study Business Information Systems, I spent <b>two and a half years trading index
+            options</b> on a live desk. Trading taught me to distrust results that look too good, to model costs, and to ask
+            what changes when the regime changes.
+          </p>
+          <p class="muted">
+            I now apply the same habits to AI. At Datacurve I build the challenges AI agents are evaluated on, which means
+            thinking adversarially about leakage, shortcuts and saturation. On the side I build products end to end, from a
+            Python quant service to a TypeScript front end.
+          </p>
+          <div class="skills">
+            {skills.map((s) => (
+              <div class="sk" data-track={s.track}>
+                <p class="label">{s.group}</p>
+                <ul role="list">{s.items.map((i) => <li>{i}</li>)}</ul>
+              </div>
+            ))}
+          </div>
+          <ul class="certs mono" role="list">{certs.map((c) => <li>{c}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* HERO */
+  .hero { padding-top: clamp(56px, 9vw, 120px); }
+  .hero-grid { row-gap: 56px; align-items: end; }
+  .hero-copy { grid-column: 1 / span 7; }
+  .hero-fig { grid-column: 8 / span 5; }
+  .hero-copy .label { display: flex; align-items: center; gap: 10px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pos); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos) 22%, transparent); }
+  .display { margin-top: 28px; }
+  .intro { margin-top: 32px; max-width: 34em; }
+  .hero-cta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 36px; }
+  .hint { font-size: 12px; margin-left: 10px; }
+  kbd { font: inherit; border: 1px solid var(--rule-2); border-radius: 4px; padding: 0 5px; color: var(--fg-2); }
+
+  .facts { margin-top: clamp(64px, 9vw, 112px); border-top: 1px solid var(--rule); }
+  .fact { grid-column: span 3; padding: 20px 0 clamp(56px, 7vw, 96px); }
+  .fact dd { margin-top: 10px; display: grid; gap: 2px; }
+  .fv { font-size: 16px; font-weight: 500; letter-spacing: -0.015em; }
+  .fs { font-size: 13.5px; }
+
+  /* WORK INDEX */
+  .index { list-style: none; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .row { order: var(--o-ai); border-bottom: 1px solid var(--rule); }
+  :global(html[data-lens='quant']) .row,
+  :global(html[data-lens='quant']) .arch li,
+  :global(html[data-lens='quant']) .xp-row,
+  :global(html[data-lens='quant']) .rec tr { order: var(--o-quant); }
+  .row-link {
+    display: grid; grid-template-columns: 56px minmax(0, 1fr) 220px 64px 32px; align-items: center; gap: 20px;
+    padding: 28px 8px; position: relative; transition: background var(--t-med) var(--ease);
+  }
+  .row-link::before {
+    content: ''; position: absolute; inset: 0; background: var(--bg-raised); opacity: 0; transition: opacity var(--t-med) var(--ease); z-index: -1;
+  }
+  .row-link:hover::before { opacity: 1; }
+  .num { font-size: 12px; color: var(--fg-3); }
+  .ttl { display: grid; gap: 4px; transition: transform var(--t-med) var(--ease); }
+  .row-link:hover .ttl { transform: translateX(6px); }
+  .kick { font-size: 14px; }
+  .hl { display: grid; gap: 2px; }
+  .hv { font-size: 22px; font-weight: 520; letter-spacing: -0.03em; }
+  .hlbl { font-size: 12.5px; }
+  .yr { font-size: 12px; }
+  .go { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--rule-2); color: var(--fg-3); transition: all var(--t-med) var(--ease); }
+  .go svg { width: 14px; height: 14px; }
+  .row-link:hover .go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); transform: rotate(-45deg); }
+  .row-link:hover .hv { color: var(--accent); }
+
+  .archive { margin-top: 64px; row-gap: 16px; }
+  .archive .label { grid-column: 1 / span 3; }
+  .arch { grid-column: 4 / span 9; list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .arch li { order: var(--o-ai); border-top: 1px solid var(--rule); }
+  .arch-link { display: grid; gap: 2px; padding: 14px 0; }
+  .at { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
+  .an { font-size: 13.5px; }
+  .ext { color: var(--fg-3); transition: color var(--t-fast); }
+  .arch-link:hover .ext, .arch-link:hover .at { color: var(--accent); }
+
+  /* EXPERIENCE */
+  .xp { list-style: none; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .xp-row { order: var(--o-ai); padding: 36px 0; border-bottom: 1px solid var(--rule); row-gap: 14px; }
+  .xp-when { grid-column: 1 / span 3; display: grid; gap: 2px; align-content: start; font-size: 13px; }
+  .xp-who { grid-column: 4 / span 4; }
+  .xp-who p { font-size: 14.5px; margin-top: 4px; }
+  .yc { display: inline-block; margin-left: 10px; font-size: 10.5px; padding: 2px 6px; border-radius: 4px; background: #ff6600; color: #fff; vertical-align: 4px; letter-spacing: 0.04em; }
+  .xp-what { grid-column: 8 / span 5; font-size: 15px; }
+  .xp-what ul { margin-top: 12px; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+  .xp-what li { position: relative; padding-left: 18px; font-size: 14.5px; }
+  .xp-what li::before { content: '—'; position: absolute; left: 0; color: var(--fg-3); }
+  .more { display: inline-block; margin-top: 16px; font-size: 14.5px; }
+
+  /* RECORD */
+  .rec { width: 100%; border-collapse: collapse; }
+  .rec thead tr { border-bottom: 1px solid var(--rule); }
+  .rec th, .rec td { text-align: left; padding: 18px 12px 18px 0; vertical-align: middle; font-weight: 400; }
+  .rec thead th { padding-bottom: 12px; font-weight: 450; }
+  .rec tbody { display: flex; flex-direction: column; }
+  .rec tbody tr { display: grid; grid-template-columns: 3fr 4fr 2fr 3fr; align-items: center; border-bottom: 1px solid var(--rule); order: var(--o-ai); }
+  .rec thead tr { display: grid; grid-template-columns: 3fr 4fr 2fr 3fr; }
+  .rec tbody th { font-size: 16px; font-weight: 500; letter-spacing: -0.015em; }
+  .rec td.c-d { font-size: 14.5px; }
+  .rec td.c-r { font-size: 14px; }
+  .pbar { display: flex; align-items: center; gap: 12px; }
+  .track { flex: 1; height: 4px; background: var(--rule); border-radius: 4px; overflow: hidden; }
+  .fill { display: block; height: 100%; width: var(--p); background: var(--accent); transform-origin: left; transform: scaleX(0); transition: transform 1.2s var(--ease) 0.2s; }
+  :global(.is-in) .fill, :global(html:not(.js)) .fill { transform: scaleX(1); }
+  .pv { font-size: 12px; color: var(--fg-2); min-width: 72px; }
+
+  /* ABOUT */
+  .about { row-gap: 40px; }
+  .portrait { grid-column: 1 / span 3; }
+  .portrait :global(img) { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 20%; border-radius: 10px; filter: grayscale(1) contrast(1.05); transition: filter 600ms var(--ease); }
+  .portrait:hover :global(img) { filter: none; }
+  .cap { font-size: 11.5px; margin-top: 10px; }
+  .bio { grid-column: 4 / span 9; display: grid; gap: 22px; align-content: start; }
+  .bio > p.muted { font-size: 16px; max-width: 40em; }
+  .skills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 20px; padding-top: 24px; border-top: 1px solid var(--rule); }
+  .sk ul { list-style: none; padding: 0; margin-top: 12px; display: grid; gap: 5px; font-size: 14px; color: var(--fg-2); }
+  :global(html[data-lens='ai']) .sk[data-track='ai'] li,
+  :global(html[data-lens='quant']) .sk[data-track='quant'] li { color: var(--fg); }
+  :global(html[data-lens='ai']) .sk[data-track='ai'] .label,
+  :global(html[data-lens='quant']) .sk[data-track='quant'] .label { color: var(--accent); }
+  .certs { list-style: none; padding: 20px 0 0; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 12px; color: var(--fg-3); }
+
+  @media (max-width: 1000px) {
+    .hero-copy, .hero-fig { grid-column: 1 / -1; }
+    .hero-fig { max-width: 640px; }
+    .row-link { grid-template-columns: 40px minmax(0, 1fr) 160px 32px; }
+    .yr { display: none; }
+    .skills { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 760px) {
+    .fact { grid-column: span 6; padding-bottom: 28px; }
+    .facts { padding-bottom: 40px; }
+    .row-link { grid-template-columns: 28px minmax(0, 1fr) 28px; gap: 12px; padding: 22px 0; }
+    .hl { grid-column: 2; grid-row: 2; display: flex; gap: 8px; align-items: baseline; }
+    .hv { font-size: 17px; }
+    .go { grid-column: 3; grid-row: 1; width: 28px; height: 28px; }
+    .archive .label, .arch { grid-column: 1 / -1; }
+    .arch { grid-template-columns: 1fr; }
+    .xp-when, .xp-who, .xp-what { grid-column: 1 / -1; }
+    .rec thead { display: none; }
+    .rec tbody tr { grid-template-columns: 1fr auto; row-gap: 6px; padding: 16px 0; }
+    .rec th, .rec td { padding: 0; }
+    .rec td.c-d { grid-column: 1 / -1; grid-row: 2; }
+    .rec td.c-b { grid-column: 1 / -1; }
+    .portrait { grid-column: 1 / span 8; }
+    .bio { grid-column: 1 / -1; }
+    .hint { display: none; }
+  }
+</style>

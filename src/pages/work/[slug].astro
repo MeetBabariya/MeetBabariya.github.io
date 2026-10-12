@@ -1,0 +1,128 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const work = await getCollection('work');
+  const sorted = work.sort((a, b) => a.data.order.ai - b.data.order.ai);
+  return sorted.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, next: sorted[(i + 1) % sorted.length] },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'work'>;
+  next: CollectionEntry<'work'>;
+}
+
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+---
+
+<Base title={`${d.title} — Meet Babariya`} description={d.summary}>
+  <article class="container cs">
+    <a href="/#work" class="back mono">← All work</a>
+
+    <header class="grid-12 cs-head">
+      <p class="label kicker">{d.kicker}</p>
+      <h1 class="cs-title" transition:name={`title-${entry.id}`}>{d.title}</h1>
+      <p class="lede summary">{d.summary}</p>
+    </header>
+
+    <dl class="meta grid-12">
+      <div><dt class="label">Role</dt><dd>{d.role}</dd></div>
+      <div><dt class="label">Year</dt><dd class="mono">{d.year}</dd></div>
+      <div><dt class="label">Status</dt><dd>{d.status}</dd></div>
+      <div>
+        <dt class="label">Links</dt>
+        <dd>
+          {d.links.length ? d.links.map((l) => <a class="link" href={l.href} target="_blank" rel="noopener">{l.label} ↗</a>) : <span class="faint">—</span>}
+        </dd>
+      </div>
+    </dl>
+
+    <ul class="metrics" role="list" style={`--n:${d.metrics.length}`}>
+      {d.metrics.map((m) => (
+        <li data-reveal>
+          <span class="mv tnum">{m.value}</span>
+          <span class="ml faint">{m.label}</span>
+        </li>
+      ))}
+    </ul>
+
+    <div class="grid-12 body">
+      <aside class="stack">
+        <p class="label">Stack</p>
+        <ul role="list">{d.stack.map((s) => <li class="mono">{s}</li>)}</ul>
+      </aside>
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    <a class="next" href={`/work/${next.id}`}>
+      <span class="label">Next case study</span>
+      <span class="next-t">{next.data.title} <span aria-hidden="true">→</span></span>
+    </a>
+  </article>
+</Base>
+
+<style>
+  .cs { padding-top: clamp(40px, 6vw, 72px); }
+  .back { font-size: 12.5px; color: var(--fg-3); transition: color var(--t-fast); }
+  .back:hover { color: var(--fg); }
+  .cs-head { margin-top: clamp(40px, 6vw, 80px); row-gap: 20px; }
+  .cs-head > * { grid-column: 1 / span 10; }
+  .kicker { color: var(--accent); }
+  .cs-title { font-size: clamp(44px, 7.5vw, 104px); line-height: 0.92; letter-spacing: -0.055em; font-weight: 560; }
+  .summary { max-width: 38em; margin-top: 8px; }
+
+  .meta { margin-top: clamp(48px, 6vw, 80px); border-top: 1px solid var(--rule); padding-top: 18px; row-gap: 20px; }
+  .meta > div { grid-column: span 3; }
+  .meta dd { margin-top: 8px; font-size: 14.5px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+  .metrics { list-style: none; padding: 0; margin-top: 48px; display: grid; grid-template-columns: repeat(var(--n), 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .metrics li { padding: 28px 20px 28px 0; display: grid; gap: 6px; }
+  .metrics li + li { padding-left: 20px; border-left: 1px solid var(--rule); }
+  .mv { font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.045em; font-weight: 520; line-height: 1; }
+  .ml { font-size: 13.5px; }
+
+  .body { margin-top: clamp(56px, 8vw, 104px); row-gap: 40px; }
+  .stack { grid-column: 1 / span 3; }
+  .stack ul { list-style: none; padding: 0; margin-top: 12px; display: grid; gap: 6px; font-size: 12.5px; color: var(--fg-2); }
+  .prose { grid-column: 4 / span 8; }
+
+  .next { display: grid; gap: 10px; margin-top: clamp(80px, 10vw, 140px); padding: 40px 0 clamp(60px, 8vw, 100px); border-top: 1px solid var(--rule); }
+  .next-t { font-size: clamp(28px, 4vw, 48px); letter-spacing: -0.045em; font-weight: 540; transition: color var(--t-fast); }
+  .next:hover .next-t { color: var(--accent); }
+
+  /* long-form typography for MDX */
+  .prose :global(h2) { font-size: 24px; letter-spacing: -0.03em; font-weight: 540; margin: 56px 0 14px; }
+  .prose :global(h2:first-child) { margin-top: 0; }
+  .prose :global(h3) { font-size: 17px; letter-spacing: -0.015em; font-weight: 540; margin: 32px 0 8px; }
+  .prose > :global(p), .prose > :global(ul) > :global(li), .prose > :global(ol) > :global(li) { font-size: 16.5px; line-height: 1.68; color: var(--fg-2); }
+  .prose > :global(p + p) { margin-top: 16px; }
+  .prose :global(strong) { color: var(--fg); font-weight: 520; }
+  .prose :global(a) { color: var(--fg); text-decoration: underline; text-decoration-color: var(--rule-2); text-underline-offset: 3px; transition: text-decoration-color var(--t-fast); }
+  .prose :global(a:hover) { text-decoration-color: var(--accent); }
+  .prose > :global(ul), .prose > :global(ol) { margin: 14px 0; padding-left: 20px; display: grid; gap: 6px; }
+  .prose :global(code) { font-family: var(--font-mono); font-size: 0.86em; padding: 1px 5px; border-radius: 4px; background: var(--bg-raised); border: 1px solid var(--rule); color: var(--fg); }
+  .prose :global(blockquote) { margin: 32px 0; padding-left: 20px; border-left: 2px solid var(--accent); }
+  .prose :global(blockquote p) { font-size: 20px; line-height: 1.45; letter-spacing: -0.015em; color: var(--fg); }
+  .prose :global(table) { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14.5px; }
+  .prose :global(th) { text-align: left; font: 450 11.5px var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-3); padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); }
+  .prose :global(td) { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--rule); color: var(--fg-2); font-variant-numeric: tabular-nums; }
+  .prose :global(td:first-child) { color: var(--fg); }
+
+  @media (max-width: 900px) {
+    .cs-head > * { grid-column: 1 / -1; }
+    .meta > div { grid-column: span 6; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metrics li:nth-child(odd) { padding-left: 0; border-left: 0; }
+    .metrics li:nth-child(n + 3) { border-top: 1px solid var(--rule); }
+    .stack, .prose { grid-column: 1 / -1; }
+    .stack ul { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  }
+</style>

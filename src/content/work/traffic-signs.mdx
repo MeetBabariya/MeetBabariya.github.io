@@ -1,0 +1,54 @@
+---
+title: German Traffic Sign Recognition
+kicker: Computer vision · ADAS perception
+summary: A compact CNN that classifies the 43 sign classes of the German Traffic Sign Recognition Benchmark. Built end to end with a data pipeline, augmentation, training, evaluation, single-image inference and a demo, and trained on a CPU.
+year: '2026'
+role: Solo project
+status: Open source · model checkpoint included
+stack: [PyTorch, torchvision, Streamlit]
+track: ai
+order: { ai: 3, quant: 4 }
+headline: { value: '97.7%', label: 'test accuracy, 43 classes' }
+metrics:
+  - { value: '97.7%', label: 'test accuracy' }
+  - { value: '676K', label: 'parameters' }
+  - { value: '43', label: 'sign classes' }
+  - { value: '8', label: 'epochs on a CPU' }
+links:
+  - { label: 'GitHub', href: 'https://github.com/MeetBabariya/traffic-sign-recognition' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Pipeline from '@/components/figures/Pipeline.astro';
+import Bars from '@/components/figures/Bars.astro';
+
+## Why this task
+
+Traffic-sign recognition is a safety-critical piece of driver-assistance perception, and GTSRB is the standard German benchmark for it. I wanted to own the whole loop an ML engineer owns, not just call a pretrained model.
+
+<Figure n="01" title="Pipeline">
+  <Pipeline steps={[
+    { k: 'data.py', t: 'Load + augment', d: 'GTSRB, rotation and colour jitter' },
+    { k: 'model.py', t: 'Compact CNN', d: '3 conv blocks, BatchNorm, Dropout' },
+    { k: 'train.py', t: 'Train', d: 'Adam + step LR, best checkpoint' },
+    { k: 'predict.py', t: 'Inference', d: 'Top-k for a single image' },
+    { k: 'app.py', t: 'Demo', d: 'Upload a sign, see confidence' },
+  ]} />
+</Figure>
+
+## Model
+
+Inputs are 32×32 RGB. There are three convolutional blocks (32→32, 64→64, then 128 channels), each with BatchNorm and ReLU, followed by a classifier head of 2048 → 256 → 43 with dropout of 0.4 and 0.3. That's **675,659 parameters**, small enough to train on a laptop CPU in 8 epochs.
+
+<Figure n="02" title="Test accuracy at successive checkpoints">
+  <Bars rows={[
+    { label: 'Checkpoint 1', value: 90.4, display: '90.4%', tone: 'muted' },
+    { label: 'Checkpoint 2', value: 94.4, display: '94.4%', tone: 'muted' },
+    { label: 'Checkpoint 3', value: 96.8, display: '96.8%', tone: 'muted' },
+    { label: 'Checkpoint 4', value: 97.4, display: '97.4%', tone: 'muted' },
+    { label: 'Best', value: 97.7, display: '97.7%', tone: 'accent' },
+  ]} />
+</Figure>
+
+## What I'd do for production
+
+97.7% on a clean test set is a starting point, not a safety case. Next would be a **per-class confusion analysis** (speed-limit signs are easily confused with each other), robustness tests under blur, glare and night conditions, and **quantisation** to check accuracy and latency on embedded hardware.

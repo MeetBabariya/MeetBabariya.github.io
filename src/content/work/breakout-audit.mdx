@@ -1,0 +1,67 @@
+---
+title: Auditing a +557% breakout strategy
+kicker: Quant research · strategy due diligence
+summary: I was handed an intraday opening-range breakout with a spectacular backtest and asked to evaluate and improve it. I rebuilt it from the spec, found where the returns really came from, stress-tested it in a different market regime, and proposed a fix that holds up out of sample.
+year: '2026'
+role: Independent analysis
+status: Full report on request
+stack: [Python, pandas, NumPy, 1-minute OHLCV, walk-forward validation]
+track: quant
+order: { ai: 4, quant: 0 }
+headline: { value: '+78%', label: 'Sharpe, walk-forward out of sample' }
+metrics:
+  - { value: '97%', label: 'trade-direction match on rebuild' }
+  - { value: '~30%', label: 'of reported P&L was fill optimism' }
+  - { value: '+78%', label: 'Sharpe from vol-scaled trigger' }
+  - { value: '−35%', label: 'max drawdown' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Bars from '@/components/figures/Bars.astro';
+
+## The claim
+
+One trade per session on a single high-volatility stock: wait for the opening range, enter on the breakout, stop and target fixed in percent. The backtest showed **+557% over 98 sessions** at 3× leverage, with an annualised Sharpe of 7.55. Numbers like that are usually wrong somewhere. The job was to find out where.
+
+## 1 — Rebuild it independently
+
+I rebuilt the strategy from the written rules on independently sourced 1-minute data. My trades matched the original's direction on **97% of sessions**, so the logic was real and reproducible. The Sharpe of 7.55 was also easy to decompose: it is a per-trade Sharpe of 0.49 multiplied by √252. That's correct arithmetic, but it assumes a trade every day at that quality.
+
+## 2 — Price the execution honestly
+
+The original backtest filled at the most favourable price inside the trigger bar and assumed zero slippage. Re-filling at prices you could actually get removed about **30% of the reported P&L**. The edge survived, but smaller.
+
+## 3 — Ask what it is actually long
+
+High-volatility days paid about twice as much as calm ones. The strategy was a **long-volatility** bet in disguise, not a trend or bull-market artefact. So I ran the identical rules on the same stock in its calm prior year.
+
+<Figure n="01" title="Same rules, two regimes (backtest P&L on $100k, 3×)" caption="2025 was calm (~2.4% average daily range). The edge disappears below roughly a 4% daily range: 49% win rate, profit factor 0.83, $85k drawdown.">
+  <Bars rows={[
+    { label: '2026 · high volatility', value: 391, display: '+$391k', tone: 'pos' },
+    { label: '2025 · calm', value: -28, display: '−$28k', tone: 'neg' },
+  ]} />
+</Figure>
+
+## 4 — Fix it, and test the fix out of sample
+
+Two changes, both picked on a training window and judged walk-forward:
+
+- **Volatility-scaled trigger.** The breakout threshold scales with recent volatility, so noise on quiet mornings stops triggering entries.
+- **Volatility gate.** Trade only when the prior 10-day realised volatility is above about 5%. The threshold was robust anywhere from 3% to 5%.
+
+| Change | Effect (out of sample) |
+| --- | --- |
+| Vol-scaled trigger | Sharpe **+78%**, max drawdown **−35%**, whipsaw stop-outs 6 → 1, profit −9% |
+| + vol gate, 2025 + 2026 combined | profit roughly flat (~$363k), Sharpe **0.22 → 0.50** |
+
+<Figure n="02" title="Combined two-year book: Sharpe before and after" caption="The gate gives up almost no profit. It simply stops trading the regime where the strategy has no edge.">
+  <Bars rows={[
+    { label: 'Original rules', value: 0.22, display: '0.22', tone: 'muted' },
+    { label: 'Vol trigger + gate', value: 0.5, display: '0.50', tone: 'accent' },
+  ]} />
+</Figure>
+
+## What didn't work
+
+**Inverse-volatility position sizing** made things worse. It shrinks exposure exactly when the strategy earns its money, fighting the long-vol edge. I kept it in the report, because a negative result is part of understanding the strategy.
+
+> A backtest is a claim about the future. The audit's job is to work out which part of the number is edge, which is execution, and which is regime.

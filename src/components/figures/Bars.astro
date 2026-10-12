@@ -1,0 +1,46 @@
+---
+/** Horizontal bars on a shared zero axis; handles negative values. */
+interface Row { label: string; value: number; display: string; tone?: 'pos' | 'neg' | 'accent' | 'muted' }
+interface Props { rows: Row[]; unit?: string }
+const { rows } = Astro.props;
+const min = Math.min(0, ...rows.map((r) => r.value));
+const max = Math.max(0, ...rows.map((r) => r.value));
+const span = max - min || 1;
+const zero = (-min / span) * 100;
+---
+
+<div class="bars" style={`--zero:${zero}%`}>
+  {rows.map((r, i) => {
+    const w = (Math.abs(r.value) / span) * 100;
+    const left = r.value >= 0 ? zero : zero - w;
+    return (
+      <div class="r" style={`--i:${i}`}>
+        <span class="l">{r.label}</span>
+        <span class="track">
+          <span class:list={['b', r.tone ?? 'accent']} style={`left:${left}%;width:${w}%;transform-origin:${r.value >= 0 ? 'left' : 'right'}`}></span>
+          {min < 0 && <span class="axis"></span>}
+        </span>
+        <span class:list={['v mono tnum', r.tone ?? 'accent']}>{r.display}</span>
+      </div>
+    );
+  })}
+</div>
+
+<style>
+  .bars { display: grid; gap: 14px; }
+  .r { display: grid; grid-template-columns: minmax(120px, 30%) 1fr 92px; align-items: center; gap: 16px; }
+  .l { font-size: 13.5px; color: var(--fg-2); }
+  .track { position: relative; height: 22px; }
+  .b { position: absolute; top: 0; bottom: 0; border-radius: 3px; transform: scaleX(0); transition: transform 1s var(--ease); transition-delay: calc(var(--i) * 120ms + 150ms); }
+  :global(.is-in) .b, :global(html:not(.js)) .b { transform: scaleX(1); }
+  .axis { position: absolute; top: -4px; bottom: -4px; left: var(--zero); width: 1px; background: var(--fg-3); }
+  .b.accent { background: var(--accent); }
+  .b.pos { background: var(--pos); }
+  .b.neg { background: var(--neg); }
+  .b.muted { background: var(--rule-2); }
+  .v { font-size: 13px; text-align: right; }
+  .v.neg { color: var(--neg); }
+  .v.pos { color: var(--pos); }
+  .v.muted { color: var(--fg-3); }
+  @media (max-width: 600px) { .r { grid-template-columns: 1fr 72px; } .l { grid-column: 1 / -1; } }
+</style>

@@ -1,0 +1,46 @@
+---
+title: Financial Filings RAG
+kicker: RAG · grounded QA over SEC filings
+summary: Ask plain-English questions about a 10-K or 10-Q and get an answer generated only from the filing itself, with numbered citations to the passages used. If the filing doesn't support an answer, the system says so instead of guessing.
+year: '2026'
+role: Solo project
+status: Open source
+stack: [Python, Claude API, sentence-transformers, ChromaDB, SEC EDGAR, Streamlit]
+track: ai
+order: { ai: 2, quant: 3 }
+headline: { value: '[n]', label: 'every claim cited or refused' }
+metrics:
+  - { value: '1,200', label: 'characters per chunk' }
+  - { value: '200', label: 'characters of overlap' }
+  - { value: 'top-6', label: 'passages retrieved per query' }
+  - { value: '$0', label: 'embedding cost (runs locally)' }
+links:
+  - { label: 'GitHub', href: 'https://github.com/MeetBabariya/financial-filings-rag' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Pipeline from '@/components/figures/Pipeline.astro';
+
+## Why
+
+Ask an LLM about one company's latest filing and it will answer confidently from memory. In finance a wrong figure is worse than no figure. Retrieval-augmented generation fixes that by **retrieving the relevant text first** and making the model answer only from it.
+
+<Figure n="01" title="From filing to cited answer">
+  <Pipeline steps={[
+    { k: 'ingest', t: 'Fetch filing', d: 'SEC EDGAR by ticker, or a local PDF/HTML' },
+    { k: 'chunk', t: 'Overlapping windows', d: '1,200 chars, 200 overlap' },
+    { k: 'embed', t: 'Local embeddings', d: 'all-MiniLM-L6-v2, no API cost' },
+    { k: 'retrieve', t: 'Vector search', d: 'ChromaDB, top-6 passages' },
+    { k: 'generate', t: 'Grounded answer', d: 'Claude cites [n] or refuses' },
+  ]} />
+</Figure>
+
+## Design decisions
+
+- **Overlapping character windows.** Filings bury key numbers mid-paragraph. A 200-character overlap stops a figure and its label from landing in different chunks.
+- **Local embeddings.** `sentence-transformers` runs on a laptop, so indexing a 100-page filing costs nothing and keeps the documents on the machine.
+- **Refusal is a feature.** The prompt restricts the model to the retrieved passages and tells it to say when they don't contain the answer. A cited "not stated in the filing" beats a plausible guess.
+- **Citations by construction.** Every passage goes into the prompt with an index, and the answer must reference `[n]`. A reader can check every claim in one click.
+
+## What I'd add next
+
+The next step is to measure it, not just demo it: a small labelled question set per filing to track **retrieval recall@k** and **answer faithfulness**; hybrid BM25 + vector retrieval for exact line items like "diluted EPS"; and table-aware parsing, because many financial facts live in tables that character windows split badly.

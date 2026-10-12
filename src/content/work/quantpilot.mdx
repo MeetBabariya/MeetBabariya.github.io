@@ -1,0 +1,46 @@
+---
+title: QuantPilot
+kicker: Product · AI copilot × copy trading on Hyperliquid
+summary: A non-custodial social-trading layer for Hyperliquid perpetuals. It ranks traders by risk- and funding-adjusted performance with a luck filter, lets users copy them without handing over withdrawal rights, and earns a small builder fee on every routed fill.
+year: '2026'
+role: 'Solo builder — research, quant, backend, product'
+status: Private · demo on request
+stack: [TypeScript, Next.js, Hono, grammY, Python, FastAPI, PostgreSQL, Hyperliquid SDK]
+track: both
+order: { ai: 1, quant: 1 }
+headline: { value: 'DSR', label: 'Deflated-Sharpe trader ranking' }
+metrics:
+  - { value: 'Live', label: 'ranking worker on mainnet data' }
+  - { value: 'Testnet', label: 'agent-wallet execution verified' }
+  - { value: '27', label: 'Python tests passing' }
+  - { value: '0.03%', label: 'builder fee vs 0.05% incumbent' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Arch from '@/components/figures/Arch.astro';
+
+## The wedge
+
+Trading front-ends on Hyperliquid earn **builder fees** on the volume they route. The leaders are Telegram bots and copy-trading apps. When I studied them, they shared three blind spots:
+
+1. **Leaderboards sort by raw P&L**, which rewards leverage and luck.
+2. **Custody fear**: many bots hold user keys.
+3. **No AI layer** to explain what a trader is actually doing.
+
+QuantPilot targets all three, and charges 0.03% instead of the 0.05% an incumbent charges.
+
+## Ranking that survives luck
+
+A trader with a great month is usually lucky. The ranking worker scores accounts on **risk-adjusted and funding-adjusted** returns (perp funding can quietly dominate P&L), then applies a **Deflated Sharpe Ratio** filter. That corrects the Sharpe for how many candidates were screened and for non-normal returns, so the top of the board is less likely to be the best of many coin flips. The worker discovers accounts and has run on live mainnet data.
+
+## Architecture
+
+<Figure n="01" title="TypeScript product shell, Python quant brain, one schema" caption="Users approve an agent wallet once. It can place trades but cannot withdraw, so QuantPilot never holds custody. Agent keys are encrypted at rest with AES-GCM.">
+  <Arch />
+</Figure>
+
+I started in Python and moved the product surface to TypeScript deliberately. Builder revenue scales with **routed volume, not latency**, so distribution and UX matter more than raw speed. A single TS stack (bot, web, API) on a mature Hyperliquid SDK ships faster. The quant code stayed in Python, where it belongs, and both languages share one PostgreSQL schema. I verified that integration end to end.
+
+## Where it stands
+
+- **Built:** onboarding and signing, execution with builder code (verified on testnet), and the ranking engine (run on mainnet data).
+- **Next:** the AI copilot. It explains a trader's style, exposure and drawdowns in plain language before you copy them.

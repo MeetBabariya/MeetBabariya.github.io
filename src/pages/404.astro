@@ -1,0 +1,15 @@
+---
+import Base from '@/layouts/Base.astro';
+---
+
+<Base title="Not found — Meet Babariya">
+  <section class="container nf">
+    <p class="label">Error 404</p>
+    <h1 class="display">Out of<br />sample.</h1>
+    <p class="lede">This page isn't in the training data. Try the <a class="link accent" href="/">homepage</a>.</p>
+  </section>
+</Base>
+
+<style>
+  .nf { padding-block: clamp(80px, 14vw, 180px); display: grid; gap: 28px; }
+</style>

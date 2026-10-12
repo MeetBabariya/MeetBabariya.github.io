@@ -1,0 +1,23 @@
+---
+interface Props { n: string; title: string; caption?: string; wide?: boolean }
+const { n, title, caption, wide = false } = Astro.props;
+---
+
+<figure class:list={['figure', { wide }]} data-reveal>
+  <figcaption class="head">
+    <span class="label">Fig. {n}</span>
+    <span class="title">{title}</span>
+  </figcaption>
+  <div class="body"><slot /></div>
+  {caption && <p class="cap">{caption}</p>}
+</figure>
+
+<style>
+  .figure { margin: 48px 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--bg-raised); overflow: hidden; }
+  .wide { margin-inline: calc(-1 * clamp(0px, 8vw, 120px)); }
+  .head { display: flex; white-space: nowrap; gap: 14px; align-items: baseline; padding: 13px 18px; border-bottom: 1px solid var(--rule); }
+  .title { white-space: normal; font-size: 13.5px; color: var(--fg-2); }
+  .body { padding: 20px 18px; }
+  .cap { padding: 12px 18px 14px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--fg-3); line-height: 1.5; }
+  @media (max-width: 900px) { .wide { margin-inline: 0; } }
+</style>

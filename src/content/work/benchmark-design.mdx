@@ -1,0 +1,63 @@
+---
+title: Benchmarks agents can't saturate
+kicker: Datacurve (YC) · Project Eris
+summary: I design the Kaggle-style challenges Datacurve uses to train and grade autonomous AI agents. The hard part isn't building a task. It's building one a frontier agent can't max out, can't game, and can't solve by looking up the answer.
+year: '2026'
+role: ML Benchmark Engineer (contract)
+status: Ongoing · specifics anonymised
+stack: [Python, PyTorch, NumPy, pandas, scikit-learn, Kaggle GPU, Hugging Face]
+track: ai
+order: { ai: 0, quant: 2 }
+headline: { value: '< 0.8', label: 'target frontier-agent score' }
+metrics:
+  - { value: '25+', label: 'challenge designs built' }
+  - { value: '4', label: 'tracks: vision FT, seq2seq, from-scratch, LLM eval' }
+  - { value: '< 0.8', label: 'agent score needed to pass' }
+  - { value: '1e-16', label: 'Bayes decoder vs brute force' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Pipeline from '@/components/figures/Pipeline.astro';
+import AgentScores from '@/components/figures/AgentScores.astro';
+
+## The job
+
+Each challenge is a small, self-contained ML competition: a dataset, a problem statement, a split script, an evaluator, rubrics and a reference solution. Agents attempt it, the platform measures them, and the results feed back into training. A challenge is only useful if it separates strong agents from weak ones. That means it has to be **novel, leak-proof and genuinely hard**.
+
+<Figure n="01" title="Anatomy of a challenge">
+  <Pipeline steps={[
+    { k: 'source', t: 'Licensed data', d: 'CC-BY / CC0 / public-domain records' },
+    { k: 'prepare.py', t: 'Split pipeline', d: 'Group holdouts, anti-lookup transforms' },
+    { k: 'grade.py', t: 'Evaluator', d: 'Strict contract: invalid files raise' },
+    { k: 'agents', t: 'Agent runs', d: 'Several independent attempts' },
+    { k: 'calibrate', t: 'Difficulty gate', d: 'Best run must stay below 0.8' },
+  ]} />
+</Figure>
+
+## "Hard to learn" is not "hard for an agent"
+
+My early designs failed in an instructive way. I calibrated them with baselines I could run locally (TF-IDF floors, frozen encoders, small CNNs) and they looked hard. Then frontier agents scored 0.90–1.00 on them. Strong agents don't behave like any single baseline: they try many approaches, and any task where the signal is fully recoverable gets solved.
+
+<Figure n="02" title="Agent scores across six of my designs" caption="Real scores, anonymised task names. The four designs in red were too easy and were rejected or reworked. The last design also shows a wide spread between runs, which is what you want: the task rewards skill instead of collapsing everyone onto the same ceiling.">
+  <AgentScores />
+</Figure>
+
+Two lessons changed how I build:
+
+- **An exact information ceiling is a trap.** If a task has a provable ceiling, every competent agent hits it, and the runs come back identical. Human reviewers reject that as saturated. Good difficulty is *structural*: coupled predictions over a large candidate space, scored with a metric that punishes partial guessing.
+- **Novelty is judged against the literature, by framing.** The checker finds the nearest published benchmark to how a task is *described*. The same mechanism passed under an applied framing and failed when its name matched a known research area.
+
+## Proving a ceiling instead of guessing it
+
+On one sequence-recovery design, agents scored about 0.83 and the first assumption was a bug in the data. To settle it I wrote an exact Bayes-optimal decoder (a boundary-conditioned forward–backward pass over the hidden source) and checked it against brute-force enumeration to a precision of 1e-16. The decoder showed what the information limit actually was, so the agent scores were explained by deployment settings, not a leak. That turned a guessing game into a measurement.
+
+## Graders are APIs
+
+Most of my revision rounds came from the evaluator contract, not the ML:
+
+- A **malformed submission must raise**, not score 0.0. A zero counts as a real attempt; an exception tells the platform to reject the file.
+- The grader is called **by keyword**, so parameter names are part of the interface.
+- "Validate on the latest data" is a leak if rows are shuffled with no timestamp. An agent will select validation rows that resemble the test set instead.
+
+## What I'd take to an AI team
+
+Designing evaluations adversarially, with the assumption that the model will find every shortcut, is the same discipline you need to evaluate an LLM feature before shipping it: hold out by group, hunt for leakage, check the grader as carefully as the model, and prefer a measured ceiling to an intuition.

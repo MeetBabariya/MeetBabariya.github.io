@@ -1,0 +1,94 @@
+---
+import { person } from '@/data/profile';
+const updated = new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+---
+
+<footer class="footer" id="contact">
+  <div class="container">
+    <div class="grid-12 top">
+      <p class="label lbl">Contact</p>
+      <div class="main">
+        <p class="h2 pitch">
+          Hiring an <span data-only="ai">AI / ML</span><span data-only="quant">quant</span> intern in Germany?<br />
+          <span class="faint">Let's talk.</span>
+        </p>
+        <div class="mail-row">
+          <a class="mail" href={`mailto:${person.email}`}>
+            <span>{person.email}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.6"></path></svg>
+          </a>
+          <button class="copy mono" data-copy={person.email}>Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-12 cols">
+      <div class="col">
+        <p class="label">Elsewhere</p>
+        <ul>
+          <li><a class="link" href={person.links.github} rel="me noopener" target="_blank">GitHub</a></li>
+          <li><a class="link" href={person.links.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+          <li><a class="link" href={person.links.kaggle} rel="me noopener" target="_blank">Kaggle</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <p class="label">Résumé</p>
+        <ul>
+          <li><a class="link" href={person.cv.ai} target="_blank">AI / ML CV — PDF</a></li>
+          <li><a class="link" href={person.cv.quant} target="_blank">Quant CV — PDF</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <p class="label">Local time</p>
+        <ul>
+          <li class="mono tnum"><span data-clock>--:--</span> · Stuttgart</li>
+          <li class="faint">CET / CEST</li>
+        </ul>
+      </div>
+      <div class="col">
+        <p class="label">Colophon</p>
+        <ul class="faint">
+          <li>Set in Geist &amp; Geist Mono</li>
+          <li>Astro · TypeScript · no UI framework</li>
+          <li>Updated {updated}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="base mono">
+      <span>© {new Date().getFullYear()} Meet Babariya</span>
+      <a class="link" href="#main">Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { border-top: 1px solid var(--rule); padding-top: clamp(80px, 10vw, 140px); }
+  .top { row-gap: 20px; }
+  .lbl { grid-column: 1 / span 3; padding-top: 14px; }
+  .main { grid-column: 4 / span 9; }
+  .pitch { max-width: 15em; }
+  .mail-row { display: flex; align-items: center; gap: 16px; margin-top: 40px; flex-wrap: wrap; }
+  .mail {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-size: clamp(20px, 3vw, 34px); letter-spacing: -0.03em; font-weight: 500;
+    padding-bottom: 6px; border-bottom: 1px solid var(--rule-2);
+    transition: color var(--t-fast), border-color var(--t-fast);
+  }
+  .mail svg { width: 0.9em; height: 0.9em; transition: transform var(--t-med) var(--ease); }
+  .mail:hover { color: var(--accent); border-color: var(--accent); }
+  .mail:hover svg { transform: translate(3px, -3px); }
+  .copy { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-3); border: 1px solid var(--rule-2); border-radius: 999px; padding: 6px 12px; transition: color var(--t-fast), border-color var(--t-fast); }
+  .copy:hover { color: var(--fg); border-color: var(--fg-3); }
+  .copy[data-done] { color: var(--pos); border-color: var(--pos); }
+
+  .cols { margin-top: clamp(64px, 9vw, 120px); padding-top: 28px; border-top: 1px solid var(--rule); row-gap: 32px; }
+  .col { grid-column: span 3; }
+  .col ul { list-style: none; padding: 0; margin-top: 14px; display: grid; gap: 6px; font-size: 14.5px; }
+  .base { display: flex; justify-content: space-between; padding: 40px 0 36px; font-size: 12px; color: var(--fg-3); }
+
+  @media (max-width: 760px) {
+    .lbl, .main { grid-column: 1 / -1; }
+    .col { grid-column: span 6; }
+  }
+</style>
