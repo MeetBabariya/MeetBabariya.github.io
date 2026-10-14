@@ -1,0 +1,111 @@
+---
+title: A virtual sensor for EV motor temperature
+kicker: ML + LLM · Automotive virtual sensing
+summary: You can't put a thermometer on a magnet spinning at 6,000 rpm, so car makers estimate it. I built a virtual sensor that predicts rotor-magnet and stator temperatures from signals a car can measure. It beats every published model on the standard benchmark without using torque, and an LLM assistant answers engineering questions with it, graded on 13 questions.
+year: '2026'
+role: Solo project — data, modelling, evaluation, app
+status: Open source · interactive demo below
+stack: [Python, PyTorch, scikit-learn, pandas, Gemini / Claude API, Streamlit]
+track: ai
+order: { ai: 0, quant: 2 }
+headline: { value: '1.50 K²', label: 'test error · best published 2.87' }
+metrics:
+  - { value: '1.50 K²', label: 'test MSE · best published 2.87' }
+  - { value: '5.73 K', label: 'worst-case error · published 6.02' }
+  - { value: '185 h', label: 'test-bench data, 69 drive cycles' }
+  - { value: '13 / 13', label: 'assistant evaluation passed' }
+links:
+  - { label: 'GitHub', href: 'https://github.com/MeetBabariya/emotor-virtual-sensor' }
+---
+import Figure from '@/components/figures/Figure.astro';
+import Pipeline from '@/components/figures/Pipeline.astro';
+import Bars from '@/components/figures/Bars.astro';
+import CycleExplorer from '@/components/figures/CycleExplorer.astro';
+import HotRestart from '@/components/figures/HotRestart.astro';
+import WhatIf from '@/components/figures/WhatIf.astro';
+import AssistantRuns from '@/components/figures/AssistantRuns.astro';
+
+## The problem
+
+The permanent magnets in an electric-vehicle motor lose strength **for good** if they overheat. They sit on the rotor, which spins at up to 6,000 rpm, so a production car can't measure their temperature. Manufacturers instead run a **virtual sensor**: a model that estimates the temperature from signals the car does measure, namely currents, voltages, speed, and coolant and ambient temperature. The better the estimate, the closer a motor can safely run to its limit, which means more performance from less magnet material.
+
+I used Paderborn University's public test-bench dataset: 185 hours of recordings from a German OEM's prototype motor, with lab-measured magnet and stator temperatures as ground truth. Results are scored on the dataset authors' own held-out cycles, so they're directly comparable with published work.
+
+## Results
+
+<Figure n="01" title="Error on the published generalization cycles (MSE averaged over magnet + 3 stator temperatures)" caption="Published numbers: Kirchgässner, Wallscheid & Böcker, Thermal neural networks, Eng. Appl. of AI (2023), Table III. Those models also used torque as an input; mine doesn't, because a car can't measure it reliably.">
+  <Bars rows={[
+    { label: 'MLP', value: 5.58, display: '5.58', tone: 'muted' },
+    { label: 'Linear regression', value: 4.47, display: '4.47', tone: 'muted' },
+    { label: 'CNN', value: 4.43, display: '4.43', tone: 'muted' },
+    { label: 'Lumped thermal network', value: 3.64, display: '3.64', tone: 'muted' },
+    { label: 'Thermal NN (best published)', value: 2.87, display: '2.87', tone: 'muted' },
+    { label: 'This project', value: 1.50, display: '1.50', tone: 'accent' },
+  ]} />
+</Figure>
+
+The worst-case error is **5.73 K**, against 6.02 K for the best published model. Below are the three untouched test cycles. Hover to read values.
+
+<Figure n="02" title="Virtual sensor vs. lab measurement on unseen test cycles">
+  <CycleExplorer />
+</Figure>
+
+## The finding the benchmark hides
+
+All three official test cycles start with a **cool** motor. Real cars restart **hot**: drive, stop for ten minutes, drive again. Several training cycles do exactly that. In cycle 53 the magnet starts at 50.6 °C while the coolant reads 18.6 °C.
+
+A sensor that assumes the motor starts at coolant temperature is about **30 K wrong for about 40 minutes**. Drag the slider to choose what the car's controller believes at restart:
+
+<Figure n="03" title="Hot restart (cycle 53): what the controller assumes at key-on decides the first 40 minutes" caption="Precomputed with the real model for every start temperature from 19 to 60 °C. Stator nodes are scaled consistently with the magnet assumption.">
+  <HotRestart />
+</Figure>
+
+The engineering conclusion is simple: **store the estimate at shutdown, and model cool-down while the car is parked.** Both of my models take that stored value as their initial state.
+
+## How it works
+
+<Figure n="04" title="Pipeline">
+  <Pipeline steps={[
+    { k: 'history', t: 'Load-history features', d: 'EWMA mean/std of currents, voltages, power over 7–53 min' },
+    { k: 'ridge', t: 'Linear model + start correction', d: 'start bias fades with τ ≈ 15 min (rotor), 5 min (stator)' },
+    { k: 'tnn', t: 'Thermal neural network', d: 'heat-flow network with learned losses, integrated every 0.5 s' },
+    { k: 'ensemble', t: 'Average', d: 'errors anti-correlated → 1.50 vs 2.09 / 2.70 K²' },
+    { k: 'assistant', t: 'LLM + 6 tools', d: 'answers questions, numbers come from code' },
+  ]} />
+</Figure>
+
+- **Temperature responds to history, not the current instant.** The features are exponentially weighted averages and standard deviations of the electrical signals over 7–53 minutes. The history before a recording is padded as *motor off*.
+- **The physics-structured model** treats the magnet and three stator points as thermal nodes connected to the coolant and the air. Small neural networks learn the heat losses and conductances, and temperature is integrated forward every 0.5 s from a starting value. Because of that structure, the model can't ignore where it starts. The architecture follows the dataset authors; I removed torque and trained it on both cold and stored starts.
+- **The two models make opposite mistakes.** The linear model tends to read low and the network high, so their average beats both.
+
+## Bugs that taught more than the model
+
+- **Start-of-run warm-up: 11.2 → 3.8 K².** The first version scored far worse than the published linear baseline. Almost all of the error sat in the first 10% of each run, where the moving averages had no history. Padding the history fixed it.
+- **A run that begins at 5,700 rpm: 79 K error.** Padding with the *first reading* told the model the motor had been at full speed for an hour. At key-on the motor was off, so electrical signals are now padded with zero and temperatures with their first reading.
+- **Evaluation discipline.** The first bug was found while inspecting test errors. After that, every choice (features, regularisation, time constants, which network seed, ensembling) was made by grouped cross-validation on training cycles or on a validation set that includes hot restarts. The test cycles were scored once per final setup.
+
+## What-if analysis
+
+<Figure n="05" title="Scenario analysis on the test cycles: shift coolant temperature, scale motor load" caption="75 scenarios precomputed with the real model. Warmer coolant raises the magnet less than one-for-one, because much of its heat comes from electrical losses.">
+  <WhatIf />
+</Figure>
+
+## An assistant that can't make numbers up
+
+An LLM sits on top of the virtual sensor and answers questions like *"Which cycles push the magnet above 100 °C, and would the sensor have caught them?"* It never answers from memory. It picks among six deterministic tools (cycle summaries, overheating search, hot-restart detection, what-if simulation, model card), the code computes the numbers, and the LLM explains them. The agent loop is hand-written, so every step is visible. It runs on Gemini's free tier, with Claude available behind a switch.
+
+**It's evaluated, not just demoed.** Thirteen questions have answers computed from the data, and a grader checks cycle IDs, numbers within tolerance, required caveats, refusals and tool use. Version 1 scored **11/13**. The real failure: the model had to scan 69 rows and do subtraction itself, and it missed two hot restarts. I fixed it with a new tool, not a longer prompt, because **LLMs should choose the analysis and code should do the maths.**
+
+<Figure n="06" title="Recorded evaluation runs — tool calls and answers">
+  <AssistantRuns />
+</Figure>
+
+The assistant also surfaced a result I report honestly: at a 100 °C threshold, the virtual sensor **misses one cycle** whose real peak was 102.1 °C (estimated 98.7 °C). A deployed system would need a few degrees of margin.
+
+## Limitations
+
+- One motor on one test bench. A different motor needs retraining.
+- Only three official test cycles. Accuracy on training cycles is optimistic, and the app says so.
+- What-if results outside the recorded operating range are extrapolations and are flagged as such.
+
+*Data: W. Kirchgässner, O. Wallscheid, J. Böcker, Paderborn University (LEA), "Electric Motor Temperature", Kaggle, CC-BY-SA-4.0.*

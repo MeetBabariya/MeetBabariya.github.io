@@ -1,0 +1,65 @@
+---
+import './ichart.css';
+---
+
+<div class="ichart" data-restart>
+  <div class="controls">
+    <label class="ctl"><span>Controller's start assumption</span>
+      <input type="range" data-slider min="19" max="60" step="1" value="51" />
+      <b data-slider-val style="font: 500 13px var(--font-mono); color: var(--fg); white-space: nowrap">51 °C</b>
+    </label>
+    <div class="ctl"><span>Presets</span>
+      <div class="seg" data-presets>
+        <button aria-pressed="false" data-v="cold">Assume cold (= coolant)</button><button aria-pressed="true" data-v="stored">Stored at shutdown</button>
+      </div>
+    </div>
+  </div>
+  <div class="kpis" data-kpis></div>
+  <svg role="img" aria-label="Magnet temperature after a hot restart, measured versus virtual sensor"><text x="50%" y="50%" class="tick" text-anchor="middle">loading…</text></svg>
+  <div class="readout" data-readout></div>
+</div>
+
+<script>
+  import { drawChart, loadJSON } from '@/lib/linechart';
+
+  function init() {
+    document.querySelectorAll<HTMLElement>('[data-restart]').forEach(async (root) => {
+      const d = await loadJSON('/data/emotor/hot_restart.json');
+      const keys = Object.keys(d.curves).map(Number).sort((a, b) => a - b);
+      const slider = root.querySelector<HTMLInputElement>('[data-slider]')!;
+      slider.min = String(keys[0]);
+      slider.max = String(keys[keys.length - 1]);
+      const stored = keys.reduce((best, k) => (Math.abs(k - d.true_start) < Math.abs(best - d.true_start) ? k : best), keys[0]);
+      slider.value = String(stored);
+      const svg = root.querySelector('svg')!;
+      const render = () => {
+        const k = Number(slider.value);
+        const c = d.curves[String(k)];
+        root.querySelector<HTMLElement>('[data-slider-val]')!.textContent = `${k} °C`;
+        const err = k - d.true_start;
+        root.querySelector<HTMLElement>('[data-kpis]')!.innerHTML = [
+          [`${err >= 0 ? '+' : ''}${err.toFixed(1)} K`, 'assumed start vs true magnet', Math.abs(err) > 5 ? 'up' : 'good'],
+          [`${c.worst.toFixed(1)} K`, 'worst error in first hour', c.worst > 8 ? 'up' : 'good'],
+          [c.settle_min >= 60 ? '> 60' : `${Math.round(c.settle_min)}`, 'minutes until within ±3 K', c.settle_min > 10 ? 'up' : 'good'],
+          [`${d.true_start} / ${d.coolant_start} °C`, 'true magnet / coolant at restart', ''],
+        ].map(([v, l, cls]) => `<div class="kpi"><b class="${cls}">${v}</b><span>${l}</span></div>`).join('');
+        root.querySelectorAll<HTMLButtonElement>('[data-presets] button').forEach((b) =>
+          b.setAttribute('aria-pressed', String((b.dataset.v === 'cold' && k === keys[0]) || (b.dataset.v === 'stored' && k === stored))));
+        drawChart(svg, {
+          x: d.minutes, xLabel: 'min after restart', yUnit: ' °C', yMin: 15, yMax: 70,
+          series: [
+            { y: d.pm, label: 'measured', className: 'measured' },
+            { y: c.pm_est, label: 'virtual sensor', className: 'est' },
+          ],
+        }, root.querySelector<HTMLElement>('[data-readout]')!);
+      };
+      slider.addEventListener('input', render);
+      root.querySelectorAll<HTMLButtonElement>('[data-presets] button').forEach((b) => b.addEventListener('click', () => {
+        slider.value = String(b.dataset.v === 'cold' ? keys[0] : stored);
+        render();
+      }));
+      render();
+    });
+  }
+  document.addEventListener('astro:page-load', init);
+</script>

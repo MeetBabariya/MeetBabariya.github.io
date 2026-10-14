@@ -1,0 +1,58 @@
+---
+import './ichart.css';
+---
+
+<div class="ichart" data-cycles>
+  <div class="controls">
+    <div class="ctl"><span>Test cycle</span>
+      <div class="seg" data-cycle-seg>
+        <button aria-pressed="true" data-v="74">#74</button><button aria-pressed="false" data-v="60">#60</button><button aria-pressed="false" data-v="62">#62</button>
+      </div>
+    </div>
+    <div class="ctl"><span>Component</span>
+      <div class="seg" data-comp-seg>
+        <button aria-pressed="true" data-v="pm">Magnet</button><button aria-pressed="false" data-v="stator_winding">Winding</button>
+      </div>
+    </div>
+  </div>
+  <div class="kpis" data-kpis></div>
+  <svg role="img" aria-label="Measured versus estimated temperature over a test drive cycle"><text x="50%" y="50%" class="tick" text-anchor="middle">loading…</text></svg>
+  <div class="readout" data-readout></div>
+</div>
+
+<script>
+  import { drawChart, loadJSON } from '@/lib/linechart';
+
+  function init() {
+    document.querySelectorAll<HTMLElement>('[data-cycles]').forEach(async (root) => {
+      const data = await loadJSON('/data/emotor/cycles.json');
+      const state = { cycle: '74', comp: 'pm' };
+      const svg = root.querySelector('svg')!;
+      const render = () => {
+        const c = data[state.cycle];
+        const m = c.metrics[state.comp];
+        root.querySelector<HTMLElement>('[data-kpis]')!.innerHTML = [
+          [`${m.mse.toFixed(2)} K²`, 'mean squared error'], [`${m.max_err.toFixed(2)} K`, 'worst-case error'],
+          [`${m.peak.toFixed(1)} °C`, 'peak measured'], [`${m.peak_est.toFixed(1)} °C`, 'peak estimated'],
+        ].map(([v, l]) => `<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join('');
+        drawChart(svg, {
+          x: c.minutes, xLabel: 'min', yUnit: ' °C',
+          series: [
+            { y: c[state.comp], label: 'measured', className: 'measured' },
+            { y: c[`${state.comp}_est`], label: 'virtual sensor', className: 'est' },
+          ],
+        }, root.querySelector<HTMLElement>('[data-readout]')!);
+      };
+      const wire = (sel: string, key: 'cycle' | 'comp') =>
+        root.querySelectorAll<HTMLButtonElement>(`${sel} button`).forEach((b) => b.addEventListener('click', () => {
+          state[key] = b.dataset.v!;
+          root.querySelectorAll(`${sel} button`).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          render();
+        }));
+      wire('[data-cycle-seg]', 'cycle');
+      wire('[data-comp-seg]', 'comp');
+      render();
+    });
+  }
+  document.addEventListener('astro:page-load', init);
+</script>
