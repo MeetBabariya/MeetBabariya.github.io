@@ -9,39 +9,7 @@ import './ichart.css';
 
 <script>
   import { loadJSON } from '@/lib/linechart';
-
-  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const inline = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  /** Tiny, safe markdown: paragraphs, bullet lists, pipe tables, bold, code. HTML is escaped. */
-  function md(src: string): string {
-    const out: string[] = [];
-    const lines = src.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i].trim();
-      if (!l) continue;
-      if (l.startsWith('|')) {
-        const rows: string[][] = [];
-        while (i < lines.length && lines[i].trim().startsWith('|')) {
-          const cells = lines[i].trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
-          if (!cells.every((c) => /^:?-+:?$/.test(c))) rows.push(cells);
-          i++;
-        }
-        i--;
-        const [h, ...b] = rows;
-        out.push(`<table><thead><tr>${h.map((c) => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${b
-          .map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
-      } else if (/^[-*] /.test(l)) {
-        const items: string[] = [];
-        while (i < lines.length && /^[-*] /.test(lines[i].trim())) items.push(lines[i++].trim().slice(2));
-        i--;
-        out.push(`<ul>${items.map((x) => `<li>${inline(x)}</li>`).join('')}</ul>`);
-      } else {
-        out.push(`<p>${inline(l.replace(/^#+\s*/, ''))}</p>`);
-      }
-    }
-    return out.join('');
-  }
+  import { esc, md, toolChip } from '@/lib/markdown';
 
   function init() {
     document.querySelectorAll<HTMLElement>('[data-runs]').forEach(async (root) => {
@@ -52,8 +20,7 @@ import './ichart.css';
       root.querySelector<HTMLElement>('[data-list]')!.innerHTML = d.runs.map((r: any) => `
         <details class="run">
           <summary><span class="badge ${r.passed ? 'ok' : 'bad'}">${r.passed ? 'PASS' : 'FAIL'}</span><span class="q">${esc(r.question)}</span></summary>
-          <div class="tools">${(r.tools.length ? r.tools : [{ name: 'no tool call', input: {} }]).map((t: any) =>
-            `<code class="chip">${esc(t.name)}(${esc(Object.entries(t.input).map(([k, v]) => `${k}=${v}`).join(', '))})</code>`).join('')}</div>
+          <div class="tools">${(r.tools.length ? r.tools : [{ name: 'no tool call', input: {} }]).map(toolChip).join('')}</div>
           <div class="ans">${md(r.answer)}</div>
         </details>`).join('');
     });
@@ -70,12 +37,4 @@ import './ichart.css';
   .runs :global(.badge) { font: 600 10.5px var(--font-mono); letter-spacing: 0.04em; padding: 2px 6px; border-radius: 4px; flex: none; }
   .runs :global(.badge.ok) { color: var(--pos); border: 1px solid color-mix(in srgb, var(--pos) 50%, transparent); }
   .runs :global(.badge.bad) { color: var(--neg); border: 1px solid color-mix(in srgb, var(--neg) 50%, transparent); }
-  .runs :global(.tools) { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
-  .runs :global(.chip) { font: 11.5px var(--font-mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--rule-2); color: var(--accent); background: var(--bg); }
-  .runs :global(.ans) { font-size: 14px; color: var(--fg-2); padding-bottom: 16px; display: grid; gap: 10px; }
-  .runs :global(.ans b) { color: var(--fg); font-weight: 520; }
-  .runs :global(.ans table) { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
-  .runs :global(.ans th) { text-align: left; font: 450 10.5px var(--font-mono); text-transform: uppercase; color: var(--fg-3); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
-  .runs :global(.ans td) { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
-  .runs :global(.ans ul) { padding-left: 18px; display: grid; gap: 4px; }
 </style>

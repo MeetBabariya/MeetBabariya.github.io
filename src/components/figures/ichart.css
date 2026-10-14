@@ -42,6 +42,16 @@
 .ichart .note.warn { color: var(--neg); }
 .ichart .loading { font: 12px var(--font-mono); color: var(--fg-3); padding: 40px 0; text-align: center; }
 
+/* LLM answers + tool-call chips (recorded runs and live chat) */
+.ichart .tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.ichart .chip { font: 11.5px var(--font-mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--rule-2); color: var(--accent); background: var(--bg); }
+.ichart .ans { font-size: 14px; color: var(--fg-2); padding-bottom: 16px; display: grid; gap: 10px; }
+.ichart .ans b { color: var(--fg); font-weight: 520; }
+.ichart .ans table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+.ichart .ans th { text-align: left; font: 450 10.5px var(--font-mono); text-transform: uppercase; color: var(--fg-3); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
+.ichart .ans td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
+.ichart .ans ul { padding-left: 18px; display: grid; gap: 4px; }
+
 @media (max-width: 640px) {
   /* charts render at ~half scale on phones: enlarge labels and strokes in SVG units */
   .ichart .tick { font-size: 20px; }

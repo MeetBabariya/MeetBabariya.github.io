@@ -24,6 +24,7 @@ import CycleExplorer from '@/components/figures/CycleExplorer.astro';
 import HotRestart from '@/components/figures/HotRestart.astro';
 import WhatIf from '@/components/figures/WhatIf.astro';
 import AssistantRuns from '@/components/figures/AssistantRuns.astro';
+import LiveAssistant from '@/components/figures/LiveAssistant.astro';
 
 ## The problem
 
@@ -96,7 +97,11 @@ An LLM sits on top of the virtual sensor and answers questions like *"Which cycl
 
 **It's evaluated, not just demoed.** Thirteen questions have answers computed from the data, and a grader checks cycle IDs, numbers within tolerance, required caveats, refusals and tool use. Version 1 scored **11/13**. The real failure: the model had to scan 69 rows and do subtraction itself, and it missed two hot restarts. I fixed it with a new tool, not a longer prompt, because **LLMs should choose the analysis and code should do the maths.**
 
-<Figure n="06" title="Recorded evaluation runs — tool calls and answers">
+<Figure n="06" title="Ask it yourself — live, on the free tier">
+  <LiveAssistant />
+</Figure>
+
+<Figure n="07" title="Recorded evaluation runs — tool calls and answers">
   <AssistantRuns />
 </Figure>
 

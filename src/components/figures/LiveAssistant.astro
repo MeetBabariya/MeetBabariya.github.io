@@ -1,0 +1,86 @@
+---
+import './ichart.css';
+// Set PUBLIC_ASSISTANT_API at build time (e.g. https://<project>.vercel.app/api/ask).
+const api = import.meta.env.PUBLIC_ASSISTANT_API ?? '';
+const examples = [
+  'Which drive cycles push the magnet above 100 °C, and would the virtual sensor catch them?',
+  'Which cycles are hot restarts, and why do they matter?',
+  'In cycle 62, what happens to the magnet peak if the coolant is 10 °C warmer?',
+];
+---
+
+<div class="ichart live" data-live data-api={api}>
+  <form class="ask" data-form>
+    <label class="sr-only" for="live-q">Ask the engineering assistant</label>
+    <textarea id="live-q" name="q" rows="2" maxlength="400" placeholder="Ask about drive cycles, temperatures, overheating or what-if scenarios…" required></textarea>
+    <button type="submit" class="btn btn--solid send">Ask</button>
+  </form>
+  <div class="examples">
+    {examples.map((q) => <button type="button" class="ex" data-example={q}>{q}</button>)}
+  </div>
+  <div class="out" data-out aria-live="polite"></div>
+  <p class="note">Runs live on Gemini's free tier through a serverless function. Every number comes from a tool, never from the model's memory. Limited to a few questions per visitor.</p>
+</div>
+
+<script>
+  import { md, toolChip, esc } from '@/lib/markdown';
+
+  function init() {
+    document.querySelectorAll<HTMLElement>('[data-live]').forEach((root) => {
+      if (root.dataset.bound) return;
+      root.dataset.bound = '1';
+      const api = root.dataset.api;
+      const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+      const ta = form.querySelector('textarea')!;
+      const out = root.querySelector<HTMLElement>('[data-out]')!;
+      const send = form.querySelector<HTMLButtonElement>('.send')!;
+      if (!api) {
+        out.innerHTML = '<p class="note">Live questions are not enabled on this build. The recorded runs below show real answers.</p>';
+        send.disabled = true;
+        return;
+      }
+      const askQ = async (q: string) => {
+        q = q.trim();
+        if (!q) return;
+        send.disabled = true;
+        out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="thinking">Choosing tools and computing…</p>`;
+        try {
+          const res = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) });
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.error ?? `HTTP ${res.status}`);
+          out.innerHTML = `<div class="qbox">${esc(q)}</div>
+            <div class="tools">${(d.tool_calls.length ? d.tool_calls : [{ name: 'no tool call', input: {} }]).map(toolChip).join('')}</div>
+            <div class="ans">${md(d.answer)}</div>
+            <p class="meta">${d.tool_calls.length} tool call(s) · ${d.seconds.toFixed(1)} s · ${esc(d.model)}</p>`;
+        } catch (e) {
+          out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="note warn">${esc((e as Error).message)}</p>`;
+        } finally {
+          send.disabled = false;
+        }
+      };
+      form.addEventListener('submit', (e) => { e.preventDefault(); askQ(ta.value); });
+      ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQ(ta.value); } });
+      root.querySelectorAll<HTMLButtonElement>('[data-example]').forEach((b) => b.addEventListener('click', () => { ta.value = b.dataset.example!; askQ(ta.value); }));
+    });
+  }
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<style>
+  .ask { display: flex; gap: 10px; align-items: stretch; }
+  .ask textarea {
+    flex: 1; resize: vertical; min-height: 48px; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid var(--rule-2); background: var(--bg); color: var(--fg); font: 15px var(--font-sans);
+  }
+  .ask textarea:focus { outline: none; border-color: var(--accent); }
+  .ask .send { height: auto; border-radius: 10px; padding: 0 22px; }
+  .ask .send:disabled { opacity: 0.5; cursor: progress; }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ex { font-size: 12.5px; color: var(--fg-2); border: 1px solid var(--rule-2); border-radius: 999px; padding: 6px 12px; text-align: left; transition: color var(--t-fast), border-color var(--t-fast); }
+  .ex:hover { color: var(--fg); border-color: var(--fg-3); }
+  .out :global(.qbox) { font-size: 14.5px; color: var(--fg); padding: 10px 0 12px; border-top: 1px solid var(--rule); font-weight: 500; }
+  .out :global(.thinking) { font: 12.5px var(--font-mono); color: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+  .out :global(.meta) { font: 11.5px var(--font-mono); color: var(--fg-3); }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  @media (max-width: 640px) { .ask { flex-direction: column; } .ask .send { height: 44px; } }
+</style>
