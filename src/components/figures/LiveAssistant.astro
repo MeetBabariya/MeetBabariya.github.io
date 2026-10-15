@@ -2,10 +2,11 @@
 import './ichart.css';
 // Set PUBLIC_ASSISTANT_API at build time (e.g. https://<project>.vercel.app/api/ask).
 const api = import.meta.env.PUBLIC_ASSISTANT_API ?? '';
+// Example questions come from the evaluation set, so a recorded answer exists if the free models are busy.
 const examples = [
-  'Which drive cycles push the magnet above 100 °C, and would the virtual sensor catch them?',
-  'Which cycles are hot restarts, and why do they matter?',
-  'In cycle 62, what happens to the magnet peak if the coolant is 10 °C warmer?',
+  { id: 'sensor_misses', q: 'If a car relied on the virtual sensor with a 100 °C magnet limit, would it have caught every drive cycle where the real magnet went above 100 °C?' },
+  { id: 'hot_restarts', q: 'Which drive cycles start with the magnet at least 10 K hotter than the coolant?' },
+  { id: 'whatif_coolant', q: 'In drive cycle 62, how much would the peak magnet temperature change if the coolant were 10 °C warmer?' },
 ];
 ---
 
@@ -16,7 +17,7 @@ const examples = [
     <button type="submit" class="btn btn--solid send">Ask</button>
   </form>
   <div class="examples">
-    {examples.map((q) => <button type="button" class="ex" data-example={q}>{q}</button>)}
+    {examples.map((e) => <button type="button" class="ex" data-example={e.q} data-run={e.id}>{e.q}</button>)}
   </div>
   <div class="out" data-out aria-live="polite"></div>
   <p class="note">Runs live on Gemini's free tier through a serverless function. Every number comes from a tool, never from the model's memory. Limited to a few questions per visitor.</p>
@@ -24,6 +25,7 @@ const examples = [
 
 <script>
   import { md, toolChip, esc } from '@/lib/markdown';
+  import { loadJSON } from '@/lib/linechart';
 
   function init() {
     document.querySelectorAll<HTMLElement>('[data-live]').forEach((root) => {
@@ -39,7 +41,13 @@ const examples = [
         send.disabled = true;
         return;
       }
-      const askQ = async (q: string) => {
+      const render = (q: string, d: any, label: string) => {
+        out.innerHTML = `<div class="qbox">${esc(q)}</div>
+          <div class="tools">${(d.tool_calls.length ? d.tool_calls : [{ name: 'no tool call', input: {} }]).map(toolChip).join('')}</div>
+          <div class="ans">${md(d.answer)}</div>
+          <p class="meta">${label}</p>`;
+      };
+      const askQ = async (q: string, runId?: string) => {
         q = q.trim();
         if (!q) return;
         send.disabled = true;
@@ -48,19 +56,22 @@ const examples = [
           const res = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) });
           const d = await res.json();
           if (!res.ok) throw new Error(d.error ?? `HTTP ${res.status}`);
-          out.innerHTML = `<div class="qbox">${esc(q)}</div>
-            <div class="tools">${(d.tool_calls.length ? d.tool_calls : [{ name: 'no tool call', input: {} }]).map(toolChip).join('')}</div>
-            <div class="ans">${md(d.answer)}</div>
-            <p class="meta">${d.tool_calls.length} tool call(s) · ${d.seconds.toFixed(1)} s · ${esc(d.model)}</p>`;
+          render(q, d, `live · ${d.tool_calls.length} tool call(s) · ${d.seconds.toFixed(1)} s · ${esc(d.model)}`);
         } catch (e) {
-          out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="note warn">${esc((e as Error).message)}</p>`;
+          // Free-tier models are sometimes overloaded: for example questions, show the recorded evaluation answer.
+          const rec = runId ? (await loadJSON('/data/emotor/assistant.json')).runs.find((r: any) => r.id === runId) : null;
+          if (rec) {
+            render(q, { tool_calls: rec.tools, answer: rec.answer }, 'recorded answer from the evaluation run · the free live model is busy right now, try again in a minute');
+          } else {
+            out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="note warn">${esc((e as Error).message)}</p>`;
+          }
         } finally {
           send.disabled = false;
         }
       };
       form.addEventListener('submit', (e) => { e.preventDefault(); askQ(ta.value); });
       ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQ(ta.value); } });
-      root.querySelectorAll<HTMLButtonElement>('[data-example]').forEach((b) => b.addEventListener('click', () => { ta.value = b.dataset.example!; askQ(ta.value); }));
+      root.querySelectorAll<HTMLButtonElement>('[data-example]').forEach((b) => b.addEventListener('click', () => { ta.value = b.dataset.example!; askQ(ta.value, b.dataset.run); }));
     });
   }
   document.addEventListener('astro:page-load', init);
