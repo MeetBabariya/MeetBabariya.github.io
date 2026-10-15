@@ -52,6 +52,10 @@ const examples = [
         if (!q) return;
         send.disabled = true;
         out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="thinking">Choosing tools and computing…</p>`;
+        const slow = setTimeout(() => {
+          const t = out.querySelector('.thinking');
+          if (t) t.textContent = 'Free models are busy right now: switching to another one (can take up to ~30 s)…';
+        }, 8000);
         try {
           const res = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question: q }) });
           const d = await res.json();
@@ -66,6 +70,7 @@ const examples = [
             out.innerHTML = `<div class="qbox">${esc(q)}</div><p class="note warn">${esc((e as Error).message)}</p>`;
           }
         } finally {
+          clearTimeout(slow);
           send.disabled = false;
         }
       };
