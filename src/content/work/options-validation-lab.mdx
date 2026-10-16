@@ -1,11 +1,11 @@
 ---
 title: Validating option models on live BTC data
 kicker: Quant research · model validation
-summary: Banks don't trust a pricing model until an independent team has tried to break it. I built that validation for Bitcoin options on Deribit. It fits arbitrage-free volatility surfaces, calibrates five models, rebuilds a year of option-chain history from free trade data, and tests which delta actually hedges. It updates itself every day and writes its own validation report.
+summary: Banks don't trust a pricing model until an independent team has tried to break it. I built that validation for Bitcoin options on Deribit. It fits arbitrage-free volatility surfaces, calibrates six models, rebuilds a year of option-chain history from free trade data, and tests which delta actually hedges. It updates itself every day and writes its own validation report.
 year: '2026'
 role: Solo project — data, models, backtest, report, dashboard
 status: Live dashboard · updated daily
-stack: [Python, NumPy, SciPy, pandas, SVI / SSVI, Heston (COS), SABR, GitHub Actions, Plotly]
+stack: [Python, NumPy, SciPy, pandas, SVI / SSVI, Heston & Bates (COS), SABR, GitHub Actions, Plotly]
 track: quant
 order: { ai: 2.5, quant: -1 }
 headline: { value: '18,555', label: 'option-days hedged out of sample' }
@@ -13,7 +13,7 @@ metrics:
   - { value: '0.13', label: 'SVI fit error, vol pts · 99% inside bid-ask' }
   - { value: '−15%', label: 'Heston hedge vs Black-Scholes' }
   - { value: '+0.60', label: 'spot-vol correlation in Aug · −0.36 in Feb' }
-  - { value: '18 / 18', label: 'tests vs published references' }
+  - { value: '23 / 23', label: 'tests vs published references' }
 links:
   - { label: 'Live dashboard', href: 'https://meetbabariya.github.io/options-validation-lab/' }
   - { label: 'Validation report', href: 'https://meetbabariya.github.io/options-validation-lab/validation_report.html' }
@@ -37,6 +37,7 @@ Each day about 900 BTC options are listed across 11 expiries, from 2 days to a y
     { label: 'SVI (per expiry)', value: 0.13, display: '0.13', tone: 'accent' },
     { label: 'SABR, β = 1 (per expiry)', value: 0.37, display: '0.37', tone: 'accent' },
     { label: 'SSVI (global)', value: 1.11, display: '1.11', tone: 'muted' },
+    { label: 'Bates, Heston + jumps (global)', value: 0.6, display: '0.60', tone: 'muted' },
     { label: 'Heston (global)', value: 1.54, display: '1.54', tone: 'muted' },
     { label: 'Black-Scholes (flat)', value: 3.37, display: '3.37', tone: 'muted' },
   ]} />
@@ -50,13 +51,15 @@ SSVI's guarantee has a cost. It uses one skew parameter for all maturities, so i
 
 The obvious objection is noisy data. So I redrew every quote at random inside its bid-ask spread and refitted 20 to 30 times. The parameters moved by only 1–2%. The data pins them down tightly, so the misfit is **model risk, not estimation noise**: pure diffusion cannot produce steep short-dated crypto smiles. Over a year of daily calibrations, κ sat on the optimiser's upper bound on 15% of days.
 
+The textbook fix is jumps, so I added **Bates** (Heston plus lognormal jumps) and checked it against an independent Merton jump-diffusion price. It cuts the error from 1.45 to 0.60 vol points, but only by pricing **a rare, very large crash**: about one jump every 12 years, averaging −22%. The jump size, rate and dispersion lie on a ridge (correlation above 0.9 when refitted), so only their combination is pinned down. The objective also has a second basin with frequent small jumps, and from day to day the calibration switches between the two. Jumps fix the fit, not the model.
+
 ## 3 — The hard part: history that doesn't exist
 
 Testing a hedge needs a year of daily option chains, and there is no free source. Deribit's trade history does carry each trade's mark price, its implied vol and the index price. Its IV is computed on the expiry's forward, so each trade gives **one equation with one unknown** and a unique root. The median over near-the-money trades gives the forward per expiry. Checked against live forwards, the error is under 0.5 basis points. From that I rebuilt **365 days** of chain states.
 
 ## 4 — Hedge: which delta actually works?
 
-For every out-of-the-money option seen on two consecutive days, the hedge error is `dV − Δ·dF`. I compare six deltas using Hull & White's gain, `1 − SSE(model)/SSE(BS)`. The empirical deltas are fitted only on earlier months, and the intervals come from a bootstrap over whole days.
+For every out-of-the-money option seen on two consecutive days, the hedge error is `dV − Δ·dF`. I compare seven deltas using Hull & White's gain, `1 − SSE(model)/SSE(BS)`. The empirical deltas are fitted only on earlier months, and the intervals come from a bootstrap over whole days.
 
 <Figure n="02" title="Reduction in squared 1-day hedging error vs the Black-Scholes delta (287 days, 18,555 option-days)" caption="95% intervals: sticky moneyness −24.7 to −4.4%, Heston −27.8 to −6.7%, adaptive −0.7 to +15.4%. Bartlett and min-variance intervals span zero.">
   <Bars rows={[
@@ -64,11 +67,12 @@ For every out-of-the-money option seen on two consecutive days, the hedge error 
     { label: 'SABR, Bartlett delta', value: -2.8, display: '−2.8%', tone: 'muted' },
     { label: 'Min-variance (Hull & White)', value: -12.2, display: '−12.2%', tone: 'muted' },
     { label: 'Sticky moneyness (SVI)', value: -12.4, display: '−12.4%', tone: 'neg' },
+    { label: 'Bates (Heston + jumps)', value: -15.0, display: '−15.0%', tone: 'neg' },
     { label: 'Heston', value: -15.1, display: '−15.1%', tone: 'neg' },
   ]} />
 </Figure>
 
-The plain sticky-strike delta is hard to beat. Sticky moneyness and Heston both assume IV rises when BTC rises; over the year it fell slightly. The deeper reason is that **the spot-vol relationship keeps flipping**:
+The plain sticky-strike delta is hard to beat, and adding jumps changes nothing: Bates hedges exactly as badly as Heston. Sticky moneyness and Heston both assume IV rises when BTC rises; over the year it fell slightly. The deeper reason is that **the spot-vol relationship keeps flipping**:
 
 <Figure n="03" title="Correlation between BTC's daily move and the same options' IV change, by month" caption="Every fixed smile assumption wins in one regime and loses in the other. Bartlett and min-variance gain up to 39% in negative months and lose up to 52% in positive ones.">
   <Bars rows={[
@@ -96,10 +100,11 @@ A second check mattered as much. The worst **1%** of option-days carry **45%** o
 | SVI | Marking the daily smile | Approved, with arbitrage checks on every fit |
 | SABR (β = 1) | Marking | Approved; Bartlett delta not approved as default hedge |
 | SSVI | Arbitrage-free benchmark | Approved; not for short-dated marking |
-| Heston | Pricing and hedging | **Not approved**; re-test with jumps |
+| Heston | Pricing and hedging | **Not approved** |
+| Bates (Heston + jumps) | Pricing and hedging | **Not approved**; jump risk identified only as a combination |
 | Black-Scholes, sticky strike | Default delta | Approved |
 | Adaptive spot-vol delta | Challenger | Monitor for six more months |
 
-The report is generated from the data every morning, in the structure a bank uses: scope, data, conceptual soundness, implementation tests, outcome analysis, stability, a findings register and a decision per model. It also re-runs the 18 tests, which check against published references such as Fang & Oosterlee's Heston price and Gatheral & Jacquier's arbitrage example.
+The report is generated from the data every morning, in the structure a bank uses: scope, data, conceptual soundness, implementation tests, outcome analysis, stability, a findings register and a decision per model. It also re-runs the 23 tests, which check against published references such as Fang & Oosterlee's Heston price and Gatheral & Jacquier's arbitrage example and an independent Merton jump-diffusion price.
 
 > A model can be precisely calibrated and still wrong. The validation's job is to tell the two apart, and then say plainly what each model may and may not be used for.
